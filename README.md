@@ -1,6 +1,6 @@
 # Habit's Organizer
 
-As a ADHD person, I've always been struggling a lot with keeping habits, create new healthy ones.
+As an ADHD person, I've always been struggling a lot with keeping habits, create new healthy ones.
 This is why I've created this habit tracking web application with a React frontend and Bun backend. Build and maintain better habits by tracking daily progress, streaks, and completion rates. This is just a simple prototype to test and use freely. Though, it comes with an API since the longterm goal is to access this app with a coach like AI assistant. 
 
 Feel free to send reports for issue and idea if you have some interest in the project. 
