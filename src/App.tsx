@@ -25,7 +25,7 @@ export function App() {
       {/* Network Preview Banner */}
       <div className="bg-amber-50 border-b border-amber-200 py-2 px-4 text-center">
         <p className="text-amber-800 text-sm font-medium">
-          🚀 This tool is just a quick preview from my local network. 
+          🚀 This tool is just a quick preview. 
           There is no real mobile version yet, but it's intended in the future.
         </p>
       </div>
