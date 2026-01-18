@@ -22,6 +22,14 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
+      {/* Network Preview Banner */}
+      <div className="bg-amber-50 border-b border-amber-200 py-2 px-4 text-center">
+        <p className="text-amber-800 text-sm font-medium">
+          🚀 This tool is just a quick preview from my local network. 
+          There is no real mobile version yet, but it's intended in the future.
+        </p>
+      </div>
+
       <div className="container mx-auto px-4 py-8 relative z-10 max-w-6xl">
         {/* Header */}
         <div className="flex justify-between items-start mb-12 gap-8">
