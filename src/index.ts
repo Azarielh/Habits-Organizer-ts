@@ -31,7 +31,8 @@ async function saveHabits() {
 await loadHabits();
 
 const server = serve({
-  port: 3001,
+  port: 5000,
+  hostname: "0.0.0.0",
   routes: {
     "/api/habits": {
       async GET(req) {
