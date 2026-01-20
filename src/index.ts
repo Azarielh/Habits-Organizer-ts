@@ -1,6 +1,7 @@
 import { serve } from "bun";
 import index from "./index.html";
 import { addHabit, toggleHabitDone, getHabitByName, deleteHabit, type Habit } from "../habits.ts";
+import { routeInteraction } from "../interaction_router.ts";
 
 // Load habits from JSON file
 let habits: Habit[] = [];
@@ -113,6 +114,19 @@ const server = serve({
           return Response.json(habits);
         } catch (error) {
           console.error("POST /api/delete-habit error:", error);
+          return Response.json({ error: "Server error" }, { status: 400 });
+        }
+      }
+    },
+
+    "/api/habits/command": {
+      async POST(req) {
+        try {
+          const body = await req.json();
+          const result = routeInteraction(habits, body);
+          return Response.json(result);
+        } catch (error) {
+          console.error("POST /api/habits/command error:", error);
           return Response.json({ error: "Server error" }, { status: 400 });
         }
       }
