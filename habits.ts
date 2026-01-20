@@ -137,30 +137,32 @@ export function isHabitForToday(habit: Habit): boolean {
     | "friday"
     | "saturday"
     | "sunday";
-  
-  const frequency = habit.frequency;
 
-  // Daily: always display
-  if (frequency === "quotidien") {
+  const frequency = habit.frequency;
+  const iterations = habit.iterations || 1;
+  const completionsToday = getCompletionsToday(habit);
+
+  // Exclude non-daily habits if already completed today
+  if (frequency !== "quotidien" && completionsToday > 0) {
+    return false;
+  }
+
+  // Display daily habits as long as all their iterations have not been completed
+  if (frequency === "quotidien" && completionsToday < iterations) {
     return true;
   }
 
-  // Weekend: display if Saturday or Sunday
+  // Weekend : display if Saturday or Sunday
   if (frequency === "weekend") {
     return dayName === "saturday" || dayName === "sunday";
   }
 
-  // Weekday: display if Monday to Friday
+  // Week : display if Monday to Friday
   if (frequency === "semaine") {
-    return true;
+    return dayName !== "saturday" && dayName !== "sunday";
   }
 
-  // Biweekly, Monthly, Semester, Yearly: always display for simplicity
-  if (["quinzaine", "mois", "semestre", "an"].includes(frequency as string)) {
-    return true;
-  }
-
-  // Custom: display if current day is in the list
+  // Custom : display if the current day is in the list
   if (typeof frequency === "object" && frequency.type === "custom") {
     return frequency.days.includes(dayName);
   }
@@ -189,10 +191,15 @@ export function getCompletionsToday(habit: Habit): number {
 export function getCompletionsThisWeek(habit: Habit): number {
   const today = new Date();
   const weekStart = new Date(today);
-  weekStart.setDate(today.getDate() - today.getDay()); // Sunday of this week
-  
+
+  // Fixer le début de la semaine au lundi à 1h du matin
+  const dayOfWeek = today.getDay(); // 0 = Dimanche, 1 = Lundi, etc.
+  const daysToMonday = dayOfWeek === 0 ? -6 : -(dayOfWeek - 1);
+  weekStart.setDate(today.getDate() + daysToMonday);
+  weekStart.setHours(1, 0, 0, 0); // Lundi à 1h du matin
+
   const completedDates = habit.completedDates || [];
-  
+
   return completedDates.filter(date => {
     const completionDate = new Date(date);
     return completionDate >= weekStart && completionDate <= today;
