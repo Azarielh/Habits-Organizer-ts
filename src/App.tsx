@@ -5,7 +5,7 @@ import AddHabitForm from "./components/ui/AddHabitForm";
 import HabitsList from "./components/HabitsList";
 import TodayPage from "./components/TodayPage";
 import StatsPage from "./components/StatsPage";
-import "./index.css";
+import "../styles/index.css";
 
 export function App() {
   console.log("🔵 App component rendering");
