@@ -32,7 +32,7 @@ async function saveHabits() {
 await loadHabits();
 
 const server = serve({
-  port: 5000,
+  port: 3001,
   hostname: "0.0.0.0",
   routes: {
     "/api/habits": {
@@ -50,7 +50,8 @@ const server = serve({
 
           const body = await req.json();
           console.log("Received body:", body);
-          
+          const result = routeInteraction(habits, { command: "habits", args: body });
+
           const newHabit: Habit = body;
           const updatedHabits = addHabit(habits, newHabit);
           habits = updatedHabits;
@@ -70,6 +71,7 @@ const server = serve({
         try {
           const body = await req.json();
           const { name, done } = body;
+          const result = routeInteraction(habits, { command: "habits", args: body });
 
           if (!name || typeof done !== "boolean") {
             return Response.json({ error: "name and done required" }, { status: 400 });
@@ -97,6 +99,7 @@ const server = serve({
         try {
           const body = await req.json();
           const { name } = body;
+          const result = routeInteraction(habits, { command: "habits", args: body });
 
           if (!name) {
             return Response.json({ error: "name required" }, { status: 400 });
@@ -123,7 +126,7 @@ const server = serve({
       async POST(req) {
         try {
           const body = await req.json();
-          const result = routeInteraction(habits, body);
+          const result = routeInteraction(habits, { command: "habits", args: body });
           return Response.json(result);
         } catch (error) {
           console.error("POST /api/habits/command error:", error);
