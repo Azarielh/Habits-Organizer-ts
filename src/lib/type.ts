@@ -8,7 +8,6 @@ export type DeleteHabit = {
   };
 
 export type ToggleHabit = {
-	cmd: string;
 	name: string;
 	completedLogs: CompletedLog[];
 };
@@ -33,7 +32,6 @@ export type Habit = {
 }
 
 export type AddHabit = {
-	cmd: string;
 	name: string;
 	habits: Habit[]
   };

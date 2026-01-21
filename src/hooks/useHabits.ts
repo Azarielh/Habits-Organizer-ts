@@ -47,7 +47,7 @@ export function useHabits() {
 
   const toggleHabit = async (name: string, done: boolean): Promise<void> => {
     try {
-      const response = await fetch("/api/toggle-habit", {
+      const response = await fetch("/api/do-habit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, done }),

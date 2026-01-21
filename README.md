@@ -118,11 +118,11 @@ curl -X POST http://localhost:3001/api/habits \
   }'
 ```
 
-### POST `/api/toggle-habit`
+### POST `/api/do-habit`
 Mark a habit complete/incomplete
 
 ```bash
-curl -X POST http://localhost:3001/api/toggle-habit \
+curl -X POST http://localhost:3001/api/do-habit \
   -H "Content-Type: application/json" \
   -d '{"name": "Meditation", "done": false}'
 ```

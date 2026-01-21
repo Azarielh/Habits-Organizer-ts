@@ -46,7 +46,7 @@ bun run build
 
 - `GET /api/habits` - Fetch all habits
 - `POST /api/habits` - Create a new habit
-- `POST /api/toggle-habit` - Toggle habit completion status
+- `POST /api/do-habit` - Toggle habit completion status
 - `POST /api/delete-habit` - Delete a habit
 
 ## Data Storage
