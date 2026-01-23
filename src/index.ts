@@ -9,9 +9,14 @@ let habits: Habit[] = [];
 async function loadHabits() {
   try {
     const file = Bun.file("habits-data.json");
-    const content = await file.text();
+    const buffer = await file.arrayBuffer();
+    
+    // Nettoyer le JSON : corriger les virgules traînantes
+    let content = new TextDecoder("utf-8").decode(buffer);
+    content = content.replace(/,(\s*[}\]])/g, "$1");
+    
     const data = JSON.parse(content);
-    habits = data.habits;
+    habits = data.habits || [];
     console.log("✅ Habits loaded from habits-data.json");
   } catch (error) {
     console.error("❌ Error loading:", error);
@@ -70,11 +75,11 @@ const server = serve({
       async POST(req) {
         try {
           const body = await req.json();
-          const { name, done } = body;
+          const { name, completedLogs } = body;
           const result = routeInteraction( habits, { args: body });
 
-          if (!name || typeof done !== "boolean") {
-            return Response.json({ error: "name and done required" }, { status: 400 });
+          if (!name || !Array.isArray(completedLogs)) {
+            return Response.json({ error: "name and completedLogs required" }, { status: 400 });
           }
 
           const habit = getHabitByName(habits, name);
@@ -82,9 +87,16 @@ const server = serve({
             return Response.json({ error: `Habit "${name}" not found` }, { status: 404 });
           }
 
-          habits = toggleHabitDone(habits, name, done);
+          // Update habit with completedLogs
+          habits = habits.map((h) => {
+            if (h.name === name) {
+              return { ...h, completedLogs };
+            }
+            return h;
+          });
+
           await saveHabits();
-          console.log(`✅ Habit "${name}" toggled to done=${done}`);
+          console.log(`✅ Habit "${name}" updated with ${completedLogs.length} completed logs`);
 
           return Response.json(habits);
         } catch (error) {

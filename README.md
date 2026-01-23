@@ -112,7 +112,7 @@ curl -X POST http://localhost:3001/api/habits \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Meditation",
-    "frequency": "quotidien",
+    "frequency": "daily",
     "iterations": 1,
     "time": "morning"
   }'

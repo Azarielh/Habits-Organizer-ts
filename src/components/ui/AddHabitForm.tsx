@@ -17,7 +17,7 @@ const DAYS = [
 ];
 
 const FREQUENCIES = [
-  { value: "quotidien", label: "Quotidien" },
+  { value: "daily", label: "daily" },
   { value: "weekend", label: "Weekend" },
   { value: "semaine", label: "Chaque semaine" },
   { value: "quinzaine", label: "Chaque quinzaine" },
@@ -29,7 +29,7 @@ const FREQUENCIES = [
 
 export default function AddHabitForm({ onHabitAdded, addHabitFn }: AddHabitFormProps) {
   const [name, setName] = useState("");
-  const [frequencyType, setFrequencyType] = useState<string>("quotidien");
+  const [frequencyType, setFrequencyType] = useState<string>("daily");
   const [iterations, setIterations] = useState<number>(1);
   const [customDays, setCustomDays] = useState<string[]>([]);
   const [time, setTime] = useState<"morning" | "afternoon" | "evening" | "">("");
@@ -79,7 +79,7 @@ export default function AddHabitForm({ onHabitAdded, addHabitFn }: AddHabitFormP
 
       // Reset the form
       setName("");
-      setFrequencyType("quotidien");
+      setFrequencyType("daily");
       setIterations(1);
       setCustomDays([]);
       setTime("");

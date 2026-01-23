@@ -13,6 +13,7 @@ export default function StatsPage({ habits, loading, error }: StatsPageProps) {
     if (typeof frequency === "string") {
       const labels: Record<string, string> = {
         quotidien: "Quotidien",
+        daily: "daily",
         weekend: "Weekend",
         semaine: "Chaque semaine",
         quinzaine: "Chaque quinzaine",
@@ -112,7 +113,7 @@ export default function StatsPage({ habits, loading, error }: StatsPageProps) {
                         )}
                       </div>
                       <p className="text-sm text-slate-600 mt-2">
-                        {habit.iterations}x {getFrequencyLabel(habit.frequency)}
+                        {habit.iteration}x {getFrequencyLabel(habit.frequency)}
                       </p>
                       {habit.createdAt && (
                         <p className="text-xs text-slate-500 mt-1">Créé le {new Date(habit.createdAt).toLocaleDateString("fr-FR")}</p>

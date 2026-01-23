@@ -37,7 +37,8 @@ function payload_is(body: any): any {
 }
 
 export function routeInteraction(habits: Habit[], body: any) {
-  console.log("Routing interaction with body:", body);
+  console.log("interaction_router is here !\n with body:", body);
   const payload = payload_is(body["args"]);
+  
   return true; 
 }

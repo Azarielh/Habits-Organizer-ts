@@ -26,13 +26,13 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
     if (typeof frequency === "string") {
       const labels: Record<string, string> = {
         quotidien: "Quotidien",
+        daily: "daily",
         weekend: "Weekend",
         semaine: "Chaque semaine",
         quinzaine: "Chaque quinzaine",
         mois: "Chaque mois",
         semestre: "Chaque semestre",
         an: "Chaque an",
-        daily: "Quotidien",
         "3x/week": "3x par semaine",
         weekly: "Hebdomadaire",
         monthly: "Mensuel",
@@ -68,7 +68,7 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
         <div className="space-y-3">
           {habits.map((habit) => {
             const completionsToday = getCompletionsToday(habit);
-            const needsMoreCompletions = completionsToday < habit.iterations;
+            const needsMoreCompletions = completionsToday < habit.iteration;
             
             // Create blocks: N crossed-out blocks + 1 empty block if needed
             const blocks = [];
@@ -95,11 +95,8 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
                       type="checkbox"
                       id={block.id}
                       checked={block.completed}
-                      onChange={() => !block.completed && onToggleHabit(habit.name, false)}
-                      disabled={block.completed}
-                      className={`w-5 h-5 cursor-pointer rounded border-slate-300 text-blue-500 focus:ring-2 focus:ring-blue-500 ${
-                        block.completed ? "cursor-not-allowed opacity-50" : ""
-                      }`}
+                      onChange={() => onToggleHabit(habit.name, block.completed)}
+                      className={`w-5 h-5 cursor-pointer rounded border-slate-300 text-blue-500 focus:ring-2 focus:ring-blue-500`}
                     />
 
                     {/* Center - Habit Info */}
@@ -113,7 +110,7 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
                         )}
                       </div>
                       <div className="flex gap-3 mt-2 text-sm text-slate-600 flex-wrap">
-                        <span className="font-medium">{habit.iterations > 1 ? `${habit.iterations}x ` : ""}{getFrequencyLabel(habit.frequency)}</span>
+                        <span className="font-medium">{habit.iteration > 1 ? `${habit.iteration}x ` : ""}{getFrequencyLabel(habit.frequency)}</span>
                         {habit.time && (
                           <span className="text-slate-500">
                             • {habit.time === "morning" ? "🌅 Matin" : habit.time === "afternoon" ? "☀️ Après-midi" : "🌙 Soir"}

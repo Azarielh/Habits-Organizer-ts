@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Habit } from "../../habits";
+import type { CompletedLog } from "../lib/type";
 
 export function useHabits() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -45,12 +46,33 @@ export function useHabits() {
     }
   };
 
-  const toggleHabit = async (name: string, done: boolean): Promise<void> => {
+  const toggleHabit = async (name: string, completedLogs: CompletedLog[]): Promise<void> => {
     try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Vérifier si une entrée existe déjà pour aujourd'hui
+      const todayLogIndex = completedLogs.findIndex(log => log.date === today);
+      
+      let updatedLogs: CompletedLog[];
+      
+      if (todayLogIndex >= 0) {
+        // Toggle : si elle existe, la supprimer
+        updatedLogs = completedLogs.filter((_, index) => index !== todayLogIndex);
+      } else {
+        // Ajouter une nouvelle entrée pour aujourd'hui
+        const newLog: CompletedLog = {
+          period: frequency,
+          status: "completed",
+          completedAt: new Date().toISOString(),
+          constraints: "" as any
+        };
+        updatedLogs = [...completedLogs, newLog];
+      }
+      
       const response = await fetch("/api/do-habit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, done }),
+        body: JSON.stringify({ name, completedLogs: updatedLogs }),
       });
 
       if (!response.ok) throw new Error("Error toggling habit");
@@ -61,6 +83,30 @@ export function useHabits() {
       setError(err instanceof Error ? err.message : "Unknown error");
       throw err;
     }
+  };
+
+  // Wrapper pour compatibilité avec l'ancienne API (done: boolean)
+  const toggleHabitCompat = async (name: string, done: boolean): Promise<void> => {
+    const habit = habits.find(h => h.name === name);
+    if (!habit) throw new Error("Habit not found");
+    
+    let completedLogs = habit.completedLogs || [];
+    
+    if (done) {
+      // done=true : supprimer la dernière entrée
+      completedLogs = completedLogs.slice(0, -1);
+    } else {
+      // done=false : ajouter une nouvelle entrée
+      const newLog: CompletedLog = {
+        date: new Date().toISOString().split('T')[0],
+        status: "completed",
+        completedAt: new Date().toISOString(),
+        constraints: "" as any
+      };
+      completedLogs = [...completedLogs, newLog];
+    }
+    
+    await toggleHabit(name, completedLogs);
   };
 
   const deleteHabit = async (name: string): Promise<void> => {
@@ -87,7 +133,7 @@ export function useHabits() {
     error,
     loadHabits,
     addHabit,
-    toggleHabit,
+    toggleHabit: toggleHabitCompat,
     deleteHabit,
   };
 }
