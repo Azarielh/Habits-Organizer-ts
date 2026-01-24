@@ -48,6 +48,9 @@ export function useHabits() {
 
   const toggleHabit = async (name: string, completedLogs: CompletedLog[]): Promise<void> => {
     try {
+      const habit = habits.find(h => h.name === name);
+      if (!habit) throw new Error("Habit not found");
+      
       const today = new Date().toISOString().split('T')[0];
       
       // Vérifier si une entrée existe déjà pour aujourd'hui
@@ -61,7 +64,7 @@ export function useHabits() {
       } else {
         // Ajouter une nouvelle entrée pour aujourd'hui
         const newLog: CompletedLog = {
-          period: frequency,
+          period: habit.frequency as any,
           status: "completed",
           completedAt: new Date().toISOString(),
           constraints: "" as any

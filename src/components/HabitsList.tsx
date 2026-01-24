@@ -1,5 +1,5 @@
 import type { Habit } from "../../habits";
-import { isCompletedToday, getCompletionsThisWeek, getCompletionsToday, getExpectedCompletionsThisWeek } from "../../habits";
+import { getCompletionsThisWeek, getCompletionsToday, getExpectedCompletionsThisWeek } from "../../habits";
 
 interface HabitsListProps {
   habits: Habit[];
@@ -61,7 +61,7 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
 
   return (
     <div className="space-y-4">
-      <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">🎯 Mes Habitudes</h2>
+      <h2 className="text-3xl font-bold mb-6 bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">🎯 Mes Habitudes</h2>
       {habits.length === 0 ? (
         <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-lg border border-slate-200">Aucune habitude pour le moment. Crée ta première ! 🚀</div>
       ) : (
@@ -71,7 +71,7 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
             const needsMoreCompletions = completionsToday < habit.iteration;
             
             // Create blocks: N crossed-out blocks + 1 empty block if needed
-            const blocks = [];
+            const blocks: { id: any; completed: any; }[] = [];
             for (let i = 0; i < completionsToday; i++) {
               blocks.push({ id: `${habit.name}-completed-${i}`, completed: true });
             }
@@ -124,19 +124,19 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
 
                     {/* Right - Stats (only on first block) */}
                     {blocks.indexOf(block) === 0 && (
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 px-3 py-2 rounded-lg border border-blue-100 text-center">
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="bg-linear-to-br from-blue-50 to-cyan-50 px-3 py-2 rounded-lg border border-blue-100 text-center">
                           <div className="text-xs text-slate-500 font-medium">Semaine</div>
                           <div className="font-bold text-blue-600 text-lg">{getCompletionsThisWeek(habit)}/{Math.round(getExpectedCompletionsThisWeek(habit))}</div>
                         </div>
                         {habit.currentStreak !== undefined && (
-                          <div className="bg-gradient-to-br from-purple-50 to-pink-50 px-3 py-2 rounded-lg border border-purple-100 text-center">
+                          <div className="bg-linear-to-br from-purple-50 to-pink-50 px-3 py-2 rounded-lg border border-purple-100 text-center">
                             <div className="text-xs text-slate-500 font-medium">Streak</div>
                             <div className="font-bold text-purple-600 text-lg">{habit.currentStreak}</div>
                           </div>
                         )}
                         {habit.totalCompleted !== undefined && (
-                          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 px-3 py-2 rounded-lg border border-emerald-100 text-center">
+                          <div className="bg-linear-to-br from-emerald-50 to-teal-50 px-3 py-2 rounded-lg border border-emerald-100 text-center">
                             <div className="text-xs text-slate-500 font-medium">Total</div>
                             <div className="font-bold text-emerald-600 text-lg">{habit.totalCompleted}</div>
                           </div>

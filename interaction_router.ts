@@ -1,12 +1,5 @@
 import type { Habit } from "./habits";
 import { type habitsLogs, type AddHabit, type DeleteHabit } from "./src/lib/type";
-import {
-  addHabit,
-  toggleHabitDone,
-  deleteHabit,
-  getHabitByName,
-  habits,
-} from "./habits";
 
 function payload_is(body: any): any {
   // Extrait les données si elles sont dans args, sinon utilise body directement

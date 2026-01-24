@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Habit } from "../../habits";
 import { isHabitForToday, getCompletionsThisWeek, getCompletionsToday, isCompletedToday } from "../../habits";
-import { status } from "../lib/type";
 
 interface TodayPageProps {
   habits: Habit[];

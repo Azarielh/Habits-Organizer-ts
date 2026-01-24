@@ -1,3 +1,13 @@
+export type CustomFrequency = {
+	type: "custom";
+	days: ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
+	interval?: number;
+  }
+
+export type FrequencyType = "quotidien" | "weekend" | "semaine" | "quinzaine" | "mois" | "semestre" | "an" | "custom";
+
+export type Frequency = FrequencyType | CustomFrequency;
+
 export type habitsLogs = {
 	name: string;
 	completedLogs: CompletedLog[];
@@ -19,10 +29,9 @@ export type limitingfactor = "fatigue" | "malade" | "douleur" | "stress" | "moti
 								| "oubli" | "environnement inadapté" | "ressousses insuffisantes"
 								| "imprévu social" | "contexte absent" | "chez quelqu'un d'autre";
 
-export type FrequencyType = "quotidien" | "weekend" | "semaine" | "quinzaine" | "mois" | "semestre" | "an" | "custom";
 
 export type CompletedLog = {
-	period: FrequencyType;
+	period: Frequency;
 	status: status;
 	completedAt?: string;
 	constraints?: limitingfactor;
@@ -32,7 +41,7 @@ export type TimeSlot = "morning" | "afternoon" | "evening" | "";
 
 export type Habit = {
 	name: string;
-	frequency: string;
+	frequency: Frequency;
 	iteration: number;
 	time: TimeSlot;
 	description?: string;

@@ -1,22 +1,6 @@
 // habits.ts
-import type { FrequencyType, TimeSlot } from "./src/lib/type";
+import type { CompletedLog, Frequency, TimeSlot, limitingfactor } from "./src/lib/type";
 
-export interface CustomFrequency {
-  type: "custom";
-  days: ("monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday")[];
-  interval?: number;
-}
-
-export type Frequency = FrequencyType | CustomFrequency;
-
-export type limitingfactor = "fatigue" | "malade" | "douleur" | "imprévu social" | "priorité admin" | "manque temps" | "oubli";
-
-export interface CompletedLog {
-  date: string;
-  status: string;
-  completedAt: string;
-  constraints: limitingfactor;
-}
 
 export interface Habit {
   name: string;
@@ -62,7 +46,7 @@ export function toggleHabitDone(habits: Habit[], habitName: string, done: boolea
         completedLogs.pop();
       } else {
         const newLog: CompletedLog = {
-          date: now.toISOString().split('T')[0],
+          period: h.frequency,
           status: "completed",
           completedAt: currentTime,
           constraints: "" as any
@@ -95,26 +79,26 @@ export function isHabitForToday(habit: Habit): boolean {
     | "saturday"
     | "sunday";
 
-  const frequency = habit.frequency;
+  const frequency = habit.frequency as string | object;
 
   // Daily habits - always apply today
-  if (frequency === "daily" || frequency === "quotidien") {
+  if (typeof frequency === "string" && frequency === "daily") {
     return true;
   }
 
   // Weekend : display if Saturday or Sunday
-  if (frequency === "weekend") {
+  if (typeof frequency === "string" && frequency === "weekend") {
     return dayName === "saturday" || dayName === "sunday";
   }
 
   // Week : display if Monday to Friday
-  if (frequency === "semaine") {
+  if (typeof frequency === "string" && frequency === "semaine") {
     return dayName !== "saturday" && dayName !== "sunday";
   }
 
   // Custom : display if the current day is in the list
-  if (typeof frequency === "object" && frequency.type === "custom") {
-    return frequency.days.includes(dayName);
+  if (typeof frequency === "object" && (frequency as any).type === "custom") {
+    return (frequency as any)?.days.includes(dayName);
   }
 
   return false;
@@ -125,7 +109,7 @@ export function isCompletedToday(habit: Habit): boolean {
   const today = new Date().toISOString().split("T")[0];
   const completedLogs = habit.completedLogs || [];
 
-  return completedLogs.some(log => log.date === today);
+  return completedLogs.some(log => log.completedAt?.split("T")[0] === today);
 }
 
 // Count completions for today only
@@ -133,7 +117,7 @@ export function getCompletionsToday(habit: Habit): number {
   const today = new Date().toISOString().split("T")[0];
   const completedLogs = habit.completedLogs || [];
 
-  return completedLogs.filter(log => log.date === today).length;
+  return completedLogs.filter(log => log.completedAt?.split("T")[0] === today).length;
 }
 
 // Count completions for this week
@@ -149,7 +133,7 @@ export function getCompletionsThisWeek(habit: Habit): number {
   const completedLogs = habit.completedLogs || [];
 
   return completedLogs.filter(log => {
-    const logDate = new Date(log.date);
+    const logDate = new Date(log.completedAt?.split("T")[0] || "");
     return logDate >= weekStart && logDate <= today;
   }).length;
 }
@@ -161,7 +145,7 @@ export function getExpectedCompletionsThisWeek(habit: Habit): number {
   
   if (typeof frequency === "string") {
     switch (frequency) {
-      case "daily":
+      case "quotidien":
         return 7 * iterations; // All days of the week
       case "weekend":
         return 2 * iterations; // Saturday and Sunday
@@ -181,8 +165,8 @@ export function getExpectedCompletionsThisWeek(habit: Habit): number {
   }
   
   // If it's a custom frequency
-  if (frequency.type === "custom") {
-    const customDaysCount = frequency.days?.length || 0;
+  if ((frequency as any).type === "custom") {
+    const customDaysCount = (frequency as any).days?.length || 0;
     return customDaysCount * iterations;
   }
   
@@ -210,7 +194,7 @@ export function getGlobalCompletionRate(habit: Habit): number {
 function getFrequencyMultiplier(frequency: Frequency): number {
   if (typeof frequency === "string") {
     switch (frequency) {
-      case "daily":
+      case "quotidien":
         return 7; // 7 days/week
       case "semaine":
         return 1; // once/week
@@ -230,8 +214,8 @@ function getFrequencyMultiplier(frequency: Frequency): number {
   }
   
   // Custom frequency: count the number of days
-  if (frequency.type === "custom") {
-    return frequency.days?.length || 1;
+  if ((frequency as any).type === "custom") {
+    return (frequency as any).days?.length || 1;
   }
   
   return 1;
@@ -261,14 +245,14 @@ export function getWeightedGlobalCompletionRate(habits: Habit[]): number {
 
 // Calculate current streak based on frequency
 export function calculateCurrentStreak(habit: Habit): number {
-  const completedDates = habit.completedDates || [];
+  const completedDates = habit.completedLogs || [];
   if (completedDates.length === 0) return 0;
 
   const frequency = habit.frequency;
-  const iterations = habit.iterations || 1;
+  const iterations = habit.iteration || 1;
 
   // For daily: count consecutive days with enough entries
-  if (frequency === "daily") {
+  if (frequency === "quotidien") {
     let streak = 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -280,7 +264,7 @@ export function calculateCurrentStreak(habit: Habit): number {
     // First, go back to find the last day with completions
     while (true) {
       const dateStr = currentCheckDate.toISOString().split("T")[0];
-      const dayCompletions = completedDates.filter(date => date.startsWith(dateStr)).length;
+      const dayCompletions = completedDates.filter((log): boolean => log.completedAt?.split("T")[0] === dateStr).length;
       
       if (dayCompletions >= iterations) {
         // Found a valid day, can start the streak
@@ -299,7 +283,7 @@ export function calculateCurrentStreak(habit: Habit): number {
     // Now, count consecutive days backwards
     while (true) {
       const dateStr = currentCheckDate.toISOString().split("T")[0];
-      const dayCompletions = completedDates.filter(date => date.startsWith(dateStr)).length;
+      const dayCompletions: number = completedDates.filter((log): boolean => log.completedAt?.split("T")[0] === dateStr).length;
       
       if (dayCompletions < iterations) {
         // Not enough completions this day, stop the streak
@@ -321,7 +305,7 @@ export function calculateCurrentStreak(habit: Habit): number {
   }
 
   // For custom: treat as weekly
-  if (typeof frequency === "object" && frequency.type === "custom") {
+  if (typeof frequency === "object" && (frequency as any).type === "custom") {
     return calculateStreakForPeriod(habit, "custom", iterations, completedDates);
   }
 
@@ -330,7 +314,7 @@ export function calculateCurrentStreak(habit: Habit): number {
 }
 
 // Calculate streak for periodic frequencies (week, month, year, custom)
-function calculateStreakForPeriod(habit: Habit, frequencyType: string, iterations: number, completedDates: string[]): number {
+function calculateStreakForPeriod(habit: Habit, frequencyType: string, iterations: number, completedDates: CompletedLog[]): number {
   let streak = 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -361,8 +345,9 @@ function calculateStreakForPeriod(habit: Habit, frequencyType: string, iteration
 
   while (true) {
     // Count completions in this period
-    const completionsInPeriod = completedDates.filter(date => {
-      const completionDate = new Date(date);
+    const completionsInPeriod = completedDates.filter(log => {
+      if (!log.completedAt) return false;
+      const completionDate = new Date(log.completedAt);
       completionDate.setHours(0, 0, 0, 0);
       return completionDate >= currentPeriodStart && completionDate <= currentPeriodEnd;
     }).length;
