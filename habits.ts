@@ -46,7 +46,6 @@ export function toggleHabitDone(habits: Habit[], habitName: string, done: boolea
         completedLogs.pop();
       } else {
         const newLog: CompletedLog = {
-          period: h.frequency,
           status: "completed",
           completedAt: currentTime,
           constraints: "" as any

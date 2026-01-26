@@ -1,6 +1,6 @@
 import { serve } from "bun";
 import index from "./index.html";
-import { addHabit, toggleHabitDone, getHabitByName, deleteHabit, type Habit } from "../habits.ts";
+import type { Habit } from "../habits.ts";
 import { routeInteraction } from "../interaction_router.ts";
 
 // Load habits from JSON file
@@ -40,108 +40,30 @@ const server = serve({
   port: 3001,
   hostname: "0.0.0.0",
   routes: {
-    "/api/habits": {
+    "/api/habitsorganizer": {
       async GET(req) {
         return Response.json(habits);
       },
       async POST(req) {
         try {
           const contentType = req.headers.get("content-type");
-          console.log("POST /api/habits - Content-Type:", contentType);
+          console.log("POST /api/habitsorganizer - Content-Type:", contentType);
           
           if (!contentType?.includes("application/json")) {
             return Response.json({ error: "Content-Type must be application/json" }, { status: 400 });
           }
 
           const body = await req.json();
-          console.log("Received body:", body);
-          const result = routeInteraction( habits, { args: body });
-
-          const newHabit: Habit = body;
-          const updatedHabits = addHabit(habits, newHabit);
-          habits = updatedHabits;
+          console.log("📥 POST /api/habitsorganizer received:");
+          
+          const result = await routeInteraction(habits, body);
+          habits = result;
           
           await saveHabits();
           
-          return Response.json(updatedHabits, { status: 201 });
-        } catch (error) {
-          console.error("POST error:", error);
-          return Response.json({ error: "Invalid JSON or server error" }, { status: 400 });
-        }
-      }
-    },
-
-    "/api/do-habit": {
-      async POST(req) {
-        try {
-          const body = await req.json();
-          const { name, completedLogs } = body;
-          const result = routeInteraction( habits, { args: body });
-
-          if (!name || !Array.isArray(completedLogs)) {
-            return Response.json({ error: "name and completedLogs required" }, { status: 400 });
-          }
-
-          const habit = getHabitByName(habits, name);
-          if (!habit) {
-            return Response.json({ error: `Habit "${name}" not found` }, { status: 404 });
-          }
-
-          // Update habit with completedLogs
-          habits = habits.map((h) => {
-            if (h.name === name) {
-              return { ...h, completedLogs };
-            }
-            return h;
-          });
-
-          await saveHabits();
-          console.log(`✅ Habit "${name}" updated with ${completedLogs.length} completed logs`);
-
           return Response.json(habits);
         } catch (error) {
-          console.error("POST /api/do-habit error:", error);
-          return Response.json({ error: "Server error" }, { status: 400 });
-        }
-      }
-    },
-
-    "/api/delete-habit": {
-      async POST(req) {
-        try {
-          const body = await req.json();
-          const { name } = body;
-          const result = routeInteraction(habits, { args: body });
-
-          if (!name) {
-            return Response.json({ error: "name required" }, { status: 400 });
-          }
-
-          const habit = getHabitByName(habits, name);
-          if (!habit) {
-            return Response.json({ error: `Habit "${name}" not found` }, { status: 404 });
-          }
-
-          habits = deleteHabit(habits, name);
-          await saveHabits();
-          console.log(`🗑️ Habit "${name}" deleted`);
-
-          return Response.json(habits);
-        } catch (error) {
-          console.error("POST /api/delete-habit error:", error);
-          return Response.json({ error: "Server error" }, { status: 400 });
-        }
-      }
-    },
-
-    "/api/habits/command": {
-      async POST(req) {
-        try {
-          const body = await req.json();
-          const result = routeInteraction( habits, { args: body });
-          return Response.json(result);
-        } catch (error) {
-          console.error("POST /api/habits/command error:", error);
+          console.error("❌ POST /api/habitsorganizer error:", error);
           return Response.json({ error: "Server error" }, { status: 400 });
         }
       }

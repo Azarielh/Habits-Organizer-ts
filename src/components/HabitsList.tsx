@@ -5,7 +5,7 @@ interface HabitsListProps {
   habits: Habit[];
   loading: boolean;
   error: string;
-  onToggleHabit: (name: string, done: boolean) => Promise<void>;
+  onToggleHabit: (name: string, completedLogs: Object[], isChecked: boolean) => Promise<void>;
   onDeleteHabit: (name: string) => Promise<void>;
 }
 
@@ -95,7 +95,7 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
                       type="checkbox"
                       id={block.id}
                       checked={block.completed}
-                      onChange={() => onToggleHabit(habit.name, block.completed)}
+                      onChange={(e) => onToggleHabit(habit.name, habit.completedLogs || [], e.target.checked)}
                       className={`w-5 h-5 cursor-pointer rounded border-slate-300 text-blue-500 focus:ring-2 focus:ring-blue-500`}
                     />
 

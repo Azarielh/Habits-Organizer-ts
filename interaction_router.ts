@@ -1,37 +1,32 @@
-import type { Habit } from "./habits";
-import { type habitsLogs, type AddHabit, type DeleteHabit } from "./src/lib/type";
+import type { Habit, AddHabit, DeleteHabit, ToggleHabit } from "./src/lib/type";
+import { isAddHabitPayload, isCompletedLog, isDeleteHabitPayload, isToggleHabitPayload } from "./src/lib/type";
+import { handleAddHabit, handleDeleteHabit } from "./src/lib/habits_manager";
+import { handleToggleHabit } from "./src/lib/logs_manager";
+import { addHabits } from "@/logic/habits/addHabits";
+import { deleteHabit } from "@/logic/habits/deleteHabit";
 
-function payload_is(body: any): any {
-  // Extrait les données si elles sont dans args, sinon utilise body directement
-  const data = body.args || body;
-
-  if (data.hasOwnProperty('name') && data.hasOwnProperty('completedLogs')) {
-    const payload = data as habitsLogs;
-    console.log("payload_is detected habitsLogs");
-    return payload;
-  }
+export async function routeInteraction(habits: Habit[], body: any): Promise<Habit[]> {
   
-  // AddHabit a name + frequency (complet avec tous les champs)
-  if (data.hasOwnProperty('name') && data.hasOwnProperty('frequency')) {
-    const payload = data as AddHabit;
-    console.log("payload_is detected AddHabit");
-    return payload;
+  const payload = body;
+  console.log("payload:", payload);
+  
+  if (isToggleHabitPayload(payload)) {
+    console.log("🔄 Route vers handleToggleHabit");
+    return await handleToggleHabit(payload as ToggleHabit, habits);
   }
 
-  // DeleteHabit a seulement name
-  if (data.hasOwnProperty('name') && Object.keys(data).length === 1) {
-    const payload = data as DeleteHabit;
-    console.log("payload_is detected DeleteHabit");
-    return payload;
+  // AddHabit: name + habits (array)
+  if (isAddHabitPayload(payload)) {
+    console.log("🔄 Route vers addHabits");
+    return await addHabits(payload as AddHabit, habits);
   }
-  
-  console.log("payload_is could not match any type");
-  return null;
-}
 
-export function routeInteraction(habits: Habit[], body: any) {
-  console.log("interaction_router is here !\n with body:", body);
-  const payload = payload_is(body["args"]);
-  
-  return true; 
+  // DeleteHabit: seulement name, pas d'autres champs
+  if (isDeleteHabitPayload(payload)) {
+    console.log("🔄 Route vers deleteHabit");
+    return await deleteHabit(payload as DeleteHabit, habits);
+  }
+
+  console.warn("⚠️ Type non reconnu");
+  return habits;
 }

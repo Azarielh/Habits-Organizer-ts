@@ -7,7 +7,7 @@ interface TodayPageProps {
   habits: Habit[];
   loading: boolean;
   error: string;
-  onToggleHabit: (name: string, completedLogs: Object[]) => Promise<void>;
+  onToggleHabit: (name: string, completedLogs: Object[], isChecked: boolean) => Promise<void>;
 }
 
 export default function TodayPage({ habits, loading, error, onToggleHabit }: TodayPageProps) {
@@ -100,7 +100,7 @@ export default function TodayPage({ habits, loading, error, onToggleHabit }: Tod
                 type="checkbox"
                 id={`today-habit-${habit.name}`}
                 checked={isCompletedToday(habit)}
-                onChange={() => onToggleHabit(habit.name, habit.completedLogs || [])}
+                onChange={(e) => onToggleHabit(habit.name, habit.completedLogs || [], e.target.checked)}
                 className="w-5 h-5 cursor-pointer rounded border-slate-300 text-blue-500 focus:ring-2 focus:ring-blue-500"
               />
 

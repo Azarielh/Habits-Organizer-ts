@@ -11,7 +11,7 @@ export function useHabits() {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch("/api/habits");
+      const response = await fetch("/api/habitsorganizer");
       if (!response.ok) throw new Error("Error loading habits");
       const data = await response.json();
       setHabits(data);
@@ -29,7 +29,7 @@ export function useHabits() {
 
   const addHabit = async (newHabit: Habit): Promise<void> => {
     try {
-      const response = await fetch("/api/habits", {
+      const response = await fetch("/api/habitsorganizer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newHabit),
@@ -46,36 +46,12 @@ export function useHabits() {
     }
   };
 
-  const toggleHabit = async (name: string, completedLogs: CompletedLog[]): Promise<void> => {
+  const toggleHabit = async (name: string, completedLogs: CompletedLog[], isChecked: boolean): Promise<void> => {
     try {
-      const habit = habits.find(h => h.name === name);
-      if (!habit) throw new Error("Habit not found");
-      
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Vérifier si une entrée existe déjà pour aujourd'hui
-      const todayLogIndex = completedLogs.findIndex(log => log.date === today);
-      
-      let updatedLogs: CompletedLog[];
-      
-      if (todayLogIndex >= 0) {
-        // Toggle : si elle existe, la supprimer
-        updatedLogs = completedLogs.filter((_, index) => index !== todayLogIndex);
-      } else {
-        // Ajouter une nouvelle entrée pour aujourd'hui
-        const newLog: CompletedLog = {
-          period: habit.frequency as any,
-          status: "completed",
-          completedAt: new Date().toISOString(),
-          constraints: "" as any
-        };
-        updatedLogs = [...completedLogs, newLog];
-      }
-      
-      const response = await fetch("/api/do-habit", {
+      const response = await fetch("/api/habitsorganizer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, completedLogs: updatedLogs }),
+        body: JSON.stringify({ name, completedLogs, isChecked }),
       });
 
       if (!response.ok) throw new Error("Error toggling habit");
@@ -89,32 +65,28 @@ export function useHabits() {
   };
 
   // Wrapper pour compatibilité avec l'ancienne API (done: boolean)
-  const toggleHabitCompat = async (name: string, done: boolean): Promise<void> => {
-    const habit = habits.find(h => h.name === name);
-    if (!habit) throw new Error("Habit not found");
+  const toggleHabitCompat = async (name: string, completedLogs: CompletedLog[], isChecked: boolean): Promise<void> => {
+    let logs = completedLogs;
     
-    let completedLogs = habit.completedLogs || [];
-    
-    if (done) {
-      // done=true : supprimer la dernière entrée
-      completedLogs = completedLogs.slice(0, -1);
-    } else {
-      // done=false : ajouter une nouvelle entrée
+    if (isChecked) {
+      // isChecked=true (coché): ajouter une nouvelle entrée
       const newLog: CompletedLog = {
-        date: new Date().toISOString().split('T')[0],
         status: "completed",
         completedAt: new Date().toISOString(),
         constraints: "" as any
       };
-      completedLogs = [...completedLogs, newLog];
+      logs = [...logs, newLog];
+    } else {
+      // isChecked=false (décoché): supprimer la dernière entrée
+      logs = logs.slice(0, -1);
     }
     
-    await toggleHabit(name, completedLogs);
+    await toggleHabit(name, logs, isChecked);
   };
 
   const deleteHabit = async (name: string): Promise<void> => {
     try {
-      const response = await fetch("/api/delete-habit", {
+      const response = await fetch("/api/habitsorganizer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
