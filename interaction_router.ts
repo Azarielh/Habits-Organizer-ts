@@ -1,6 +1,5 @@
 import type { Habit, AddHabit, DeleteHabit, ToggleHabit } from "./src/lib/type";
-import { isAddHabitPayload, isCompletedLog, isDeleteHabitPayload, isToggleHabitPayload } from "./src/lib/type";
-import { handleAddHabit, handleDeleteHabit } from "./src/lib/habits_manager";
+import { isAddHabitPayload, isDeleteHabitPayload, isToggleHabitPayload } from "./src/lib/type";
 import { handleToggleHabit } from "./src/lib/logs_manager";
 import { addHabits } from "@/logic/habits/addHabits";
 import { deleteHabit } from "@/logic/habits/deleteHabit";

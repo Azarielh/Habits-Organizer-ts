@@ -15,57 +15,6 @@ export interface Habit {
   completedLogs: CompletedLog[];
 }
 
-// Adds a new habit with initial stats
-export function addHabit(habits: Habit[], newHabit: Habit): Habit[] {
-  const habitWithStats: Habit = {
-    ...newHabit,
-    createdAt: new Date().toISOString(),
-    currentStreak: 0,
-    longestStreak: 0,
-    totalCompleted: 0,
-    completedLogs: [],
-  };
-  return [...habits, habitWithStats];
-}
-
-// Updates streak and detects breaks
-export function updateStreakStats(habit: Habit): Habit {
-  // Cette fonction est dépréciée - on ne recalcule plus les streaks
-  return habit;
-}
-
-export function toggleHabitDone(habits: Habit[], habitName: string, done: boolean): Habit[] {
-  const now = new Date();
-  const currentTime = now.toISOString();
-
-  return habits.map((h) => {
-    if (h.name === habitName) {
-      const completedLogs = h.completedLogs || [];
-
-      if (done) {
-        completedLogs.pop();
-      } else {
-        const newLog: CompletedLog = {
-          status: "completed",
-          completedAt: currentTime,
-          constraints: "" as any
-        };
-        completedLogs.push(newLog);
-      }
-      return { ...h, completedLogs };
-    }
-    return h;
-  });
-}
-
-export function getHabitByName(habits: Habit[], habitName: string): Habit | undefined {
-  return habits.find((h) => h.name === habitName);
-}
-
-export function deleteHabit(habits: Habit[], habitName: string): Habit[] {
-  return habits.filter((h) => h.name !== habitName);
-}
-
 export function isHabitForToday(habit: Habit): boolean {
   const today = new Date();
   const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
