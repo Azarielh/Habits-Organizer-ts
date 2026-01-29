@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Habit } from "../../habits";
 import { isHabitForToday, getCompletionsThisWeek, getCompletionsToday, isCompletedToday } from "../../habits";
+import { getFrequencyLabel, getTimeLabel } from "@/lib/presentation";
 
 interface TodayPageProps {
   habits: Habit[];
@@ -35,37 +36,6 @@ export default function TodayPage({ habits, loading, error, onToggleHabit }: Tod
       day: "numeric",
     });
   }, []);
-
-  const getFrequencyLabel = (frequency: any): string => {
-    if (typeof frequency === "string") {
-      const labels: Record<string, string> = {
-        quotidien: "Quotidien",
-        daily: "daily",
-        weekend: "Weekend",
-        semaine: "Chaque semaine",
-        quinzaine: "Chaque quinzaine",
-        mois: "Chaque mois",
-        semestre: "Chaque semestre",
-        an: "Chaque an",
-      };
-      return labels[frequency] || frequency;
-    }
-
-    if (frequency.type === "custom") {
-      const dayLabels: Record<string, string> = {
-        monday: "Lun",
-        tuesday: "Mar",
-        wednesday: "Mer",
-        thursday: "Jeu",
-        friday: "Ven",
-        saturday: "Sam",
-        sunday: "Dim",
-      };
-      return frequency.days.map((d: string) => dayLabels[d]).join(", ");
-    }
-
-    return "Non défini";
-  };
 
   if (loading) return <div className="text-center py-8">Chargement...</div>;
   if (error) return <div className="text-red-500 text-center py-8">{error}</div>;
@@ -116,11 +86,7 @@ export default function TodayPage({ habits, loading, error, onToggleHabit }: Tod
                   <span className="font-medium">{habit.iteration > 1 ? `${habit.iteration}x ` : ""}{getFrequencyLabel(habit.frequency)}</span>
                   {habit.time && (
                     <span className="text-slate-500">
-                      • {habit.time === "morning"
-                        ? "🌅 Matin"
-                        : habit.time === "afternoon"
-                          ? "☀️ Après-midi"
-                          : "🌙 Soir"}
+                      • {getTimeLabel(habit.time)}
                     </span>
                   )}
                 </div>

@@ -1,5 +1,6 @@
 import type { Habit } from "../../habits";
 import { getCompletionsThisWeek, getCompletionsToday, getExpectedCompletionsThisWeek } from "../../habits";
+import { getFrequencyLabel, getTimeLabel } from "@/lib/presentation";
 
 interface HabitsListProps {
   habits: Habit[];
@@ -20,40 +21,6 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
     } catch (err) {
       console.error(err);
     }
-  };
-
-  const getFrequencyLabel = (frequency: any): string => {
-    if (typeof frequency === "string") {
-      const labels: Record<string, string> = {
-        quotidien: "Quotidien",
-        daily: "daily",
-        weekend: "Weekend",
-        semaine: "Chaque semaine",
-        quinzaine: "Chaque quinzaine",
-        mois: "Chaque mois",
-        semestre: "Chaque semestre",
-        an: "Chaque an",
-        "3x/week": "3x par semaine",
-        weekly: "Hebdomadaire",
-        monthly: "Mensuel",
-      };
-      return labels[frequency] || frequency;
-    }
-
-    if (frequency.type === "custom") {
-      const dayLabels: Record<string, string> = {
-        monday: "Lun",
-        tuesday: "Mar",
-        wednesday: "Mer",
-        thursday: "Jeu",
-        friday: "Ven",
-        saturday: "Sam",
-        sunday: "Dim",
-      };
-      return frequency.days.map((d: string) => dayLabels[d]).join(", ");
-    }
-
-    return "Non défini";
   };
 
   if (loading) return <div className="text-center py-8">Chargement...</div>;
@@ -113,7 +80,7 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
                         <span className="font-medium">{habit.iteration > 1 ? `${habit.iteration}x ` : ""}{getFrequencyLabel(habit.frequency)}</span>
                         {habit.time && (
                           <span className="text-slate-500">
-                            • {habit.time === "morning" ? "🌅 Matin" : habit.time === "afternoon" ? "☀️ Après-midi" : "🌙 Soir"}
+                            • {getTimeLabel(habit.time)}
                           </span>
                         )}
                         {habit.createdAt && (

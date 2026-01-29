@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Habit } from "../../habits";
 import { getCompletionsThisWeek, getGlobalCompletionRate, getExpectedCompletionsThisWeek, getWeightedGlobalCompletionRate } from "../../habits";
+import { getFrequencyLabel } from "@/lib/presentation";
 
 interface StatsPageProps {
   habits: Habit[];
@@ -9,37 +10,6 @@ interface StatsPageProps {
 }
 
 export default function StatsPage({ habits, loading, error }: StatsPageProps) {
-  const getFrequencyLabel = (frequency: any): string => {
-    if (typeof frequency === "string") {
-      const labels: Record<string, string> = {
-        quotidien: "Quotidien",
-        daily: "daily",
-        weekend: "Weekend",
-        semaine: "Chaque semaine",
-        quinzaine: "Chaque quinzaine",
-        mois: "Chaque mois",
-        semestre: "Chaque semestre",
-        an: "Chaque an",
-      };
-      return labels[frequency] || frequency;
-    }
-
-    if (frequency.type === "custom") {
-      const dayLabels: Record<string, string> = {
-        monday: "Lun",
-        tuesday: "Mar",
-        wednesday: "Mer",
-        thursday: "Jeu",
-        friday: "Ven",
-        saturday: "Sam",
-        sunday: "Dim",
-      };
-      return frequency.days.map((d: string) => dayLabels[d]).join(", ");
-    }
-
-    return "Non défini";
-  };
-
   // Calcul des stats globales
   const totalHabits = habits.length;
   const avgStreak = habits.length > 0 

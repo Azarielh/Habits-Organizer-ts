@@ -21,7 +21,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-slate-50">
       {/* Network Preview Banner */}
       <div className="bg-amber-50 border-b border-amber-200 py-2 px-4 text-center">
         <p className="text-amber-800 text-sm font-medium">
@@ -34,14 +34,14 @@ export function App() {
         {/* Header */}
         <div className="flex justify-between items-start mb-12 gap-8">
           <div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-5xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
               Habit's Organizer
             </h1>
             <p className="text-slate-500">Suivez vos habitudes, atteindre vos objectifs</p>
           </div>
           
           {/* Tab Navigation */}
-          <div className="flex gap-2 bg-white rounded-lg shadow-sm p-1 flex-shrink-0">
+          <div className="flex gap-2 bg-white rounded-lg shadow-sm p-1 shrink-0">
             <button
               onClick={() => setCurrentTab("today")}
               className={`px-4 py-2 rounded-md font-medium transition-all ${
@@ -82,7 +82,7 @@ export function App() {
             {/* New Habit Button */}
             <button
               onClick={() => setShowForm(!showForm)}
-              className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-4 py-3 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
+              className="w-full bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-4 py-3 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg"
             >
               {showForm ? "✕ Annuler" : "➕ Nouvelle habitude"}
             </button>

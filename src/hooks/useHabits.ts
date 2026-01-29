@@ -64,12 +64,12 @@ export function useHabits() {
     }
   };
 
-  // Wrapper pour compatibilité avec l'ancienne API (done: boolean)
+  // Wrapper for compatibility with the old API (done: boolean)
   const toggleHabitCompat = async (name: string, completedLogs: CompletedLog[], isChecked: boolean): Promise<void> => {
     let logs = completedLogs;
     
     if (isChecked) {
-      // isChecked=true (coché): ajouter une nouvelle entrée
+      // isChecked=true : add an entry for today
       const newLog: CompletedLog = {
         status: "completed",
         completedAt: new Date().toISOString(),
@@ -77,7 +77,7 @@ export function useHabits() {
       };
       logs = [...logs, newLog];
     } else {
-      // isChecked=false (décoché): supprimer la dernière entrée
+      // isChecked=false : remove the last entry (assumed to be today)
       logs = logs.slice(0, -1);
     }
     
