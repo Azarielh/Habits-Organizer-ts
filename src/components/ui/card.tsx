@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { mergeClassName } from "@/lib/utils";
+import { mergeClassName } from "@/lib/tailwind";
 
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
