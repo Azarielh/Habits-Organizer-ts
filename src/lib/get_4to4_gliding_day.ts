@@ -5,7 +5,7 @@
  * 
  * @returns Date au format YYYY-MM-DD
  */
-export function getGlidingDay(): string {
+export function get_4to4_gliding_day(): string {
   const now = new Date();
   const hour = now.getHours();
   

@@ -1,5 +1,6 @@
 // habits.ts
 import type { CompletedLog, Frequency, TimeSlot, limitingfactor } from "./src/lib/type";
+import { get_4to4_gliding_day } from "./src/lib/get_4to4_gliding_day";
 
 
 export interface Habit {
@@ -54,7 +55,7 @@ export function isHabitForToday(habit: Habit): boolean {
 
 // Check if habit was completed today
 export function isCompletedToday(habit: Habit): boolean {
-  const today = new Date().toISOString().split("T")[0];
+  const today = get_4to4_gliding_day();
   const completedLogs = habit.completedLogs || [];
 
   return completedLogs.some(log => log.completedAt?.split("T")[0] === today);
@@ -62,7 +63,7 @@ export function isCompletedToday(habit: Habit): boolean {
 
 // Count completions for today only
 export function getCompletionsToday(habit: Habit): number {
-  const today = new Date().toISOString().split("T")[0];
+  const today = get_4to4_gliding_day();
   const completedLogs = habit.completedLogs || [];
 
   return completedLogs.filter(log => log.completedAt?.split("T")[0] === today).length;

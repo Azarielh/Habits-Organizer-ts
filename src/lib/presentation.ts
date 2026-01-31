@@ -1,11 +1,4 @@
-/**
- * Traductions et labels pour la présentation
- * Regroupe toutes les traductions métier pour l'interface utilisateur
- */
 
-/**
- * Traduit une fréquence (string ou custom) en label lisible
- */
 export function getFrequencyLabel(frequency: any): string {
   if (typeof frequency === "string") {
     const labels: Record<string, string> = {
@@ -41,7 +34,7 @@ export function getFrequencyLabel(frequency: any): string {
 }
 
 /**
- * Traduit un créneau horaire (time) en label lisible avec emoji
+ * Converts a time slot (time) into a readable label with emoji.
  */
 export function getTimeLabel(time: string): string {
   const labels: Record<string, string> = {
