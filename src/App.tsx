@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHabits } from "./hooks/useHabits";
 import AddHabitForm from "./components/ui/AddHabitForm";
-import HabitsList from "./components/HabitsList";
+import HabitsList from "./components/HabitsListPage";
 import TodayPage from "./components/TodayPage";
 import StatsPage from "./components/StatsPage";
 import "../styles/index.css";
