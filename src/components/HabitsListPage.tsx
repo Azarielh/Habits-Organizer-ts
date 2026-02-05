@@ -35,14 +35,14 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
         <div className="space-y-3">
           {habits.map((habit) => {
             const completionsToday = getCompletionsToday(habit);
-            const needsMoreCompletions = completionsToday < habit.iteration;
+            const needsMoreCompletions = (completionsToday < habit.iteration);
             
             // Create blocks: N crossed-out blocks + 1 empty block if needed
             const blocks: { id: any; completed: any; }[] = [];
             for (let i = 0; i < completionsToday; i++) {
               blocks.push({ id: `${habit.name}-completed-${i}`, completed: true });
             }
-            if (needsMoreCompletions) {
+            if (needsMoreCompletions && habit.frequency === "daily") {
               blocks.push({ id: `${habit.name}-empty`, completed: false });
             }
             

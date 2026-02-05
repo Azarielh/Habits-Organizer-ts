@@ -7,9 +7,9 @@ export function isCustomFrequency(payload: any): payload is CustomFrequency {
 	return (payload as CustomFrequency).type === "custom" && Array.isArray((payload as CustomFrequency).days);
 }
 
-export type FrequencyType = "quotidien" | "weekend" | "semaine" | "quinzaine" | "mois" | "semestre" | "an" | "custom";
+export type FrequencyType = "daily" | "weekend" | "semaine" | "quinzaine" | "mois" | "semestre" | "an" | "custom";
 export function isFrequencyType(payload: any): payload is FrequencyType {
-	return (payload === "quotidien" || payload === "weekend" || payload === "semaine" || payload === "quinzaine"
+	return (payload === "daily" || payload === "weekend" || payload === "semaine" || payload === "quinzaine"
 		|| payload === "mois" || payload === "semestre" || payload === "an" || payload === "custom");
 }
 

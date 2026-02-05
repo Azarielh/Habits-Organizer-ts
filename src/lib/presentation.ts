@@ -3,13 +3,13 @@ export function getFrequencyLabel(frequency: any): string {
   if (typeof frequency === "string") {
     const labels: Record<string, string> = {
       quotidien: "Quotidien",
-      daily: "daily",
+      daily: "Quotidien",
       weekend: "Weekend",
       semaine: "Chaque semaine",
       quinzaine: "Chaque quinzaine",
       mois: "Chaque mois",
       semestre: "Chaque semestre",
-      an: "Chaque an",
+      an: "Chaque année",
       "3x/week": "3x par semaine",
       weekly: "Hebdomadaire",
       monthly: "Mensuel",

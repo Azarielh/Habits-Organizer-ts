@@ -22,7 +22,7 @@ export default function TodayPage({ habits, loading, error, onToggleHabit }: Tod
       const completionsToday = getCompletionsToday(h);
       
       // Show habit if completions < required iterations
-      return completionsToday < iterations;
+      return (completionsToday < iterations && h.frequency === "daily") || !isCompletedToday(h);
     }),
     [habits]
   );
