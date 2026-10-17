@@ -129,15 +129,15 @@ export default function StatsPage({ habits, loading, error }: StatsPageProps) {
 
                   {/* Stats grid */}
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-lg border border-blue-100 text-center">
+                    <div className="stats-streak-card stats-streak-card-blue bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-lg border border-blue-100 text-center">
                       <div className="text-xl font-bold text-blue-600">{habit.currentStreak || 0}</div>
                       <p className="text-xs text-slate-600 mt-1">Streak actuel</p>
                     </div>
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg border border-purple-100 text-center">
+                    <div className="stats-streak-card stats-streak-card-purple bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg border border-purple-100 text-center">
                       <div className="text-xl font-bold text-purple-600">{calculateLongestStreak(habit)}</div>
                       <p className="text-xs text-slate-600 mt-1">Meilleur streak</p>
                     </div>
-                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-3 rounded-lg border border-emerald-100 text-center">
+                    <div className="stats-streak-card stats-streak-card-emerald bg-gradient-to-br from-emerald-50 to-teal-50 p-3 rounded-lg border border-emerald-100 text-center">
                       <div className="text-xl font-bold text-emerald-600">{habit.totalCompleted || 0}</div>
                       <p className="text-xs text-slate-600 mt-1">Total réalisé</p>
                     </div>

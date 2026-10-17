@@ -69,6 +69,23 @@ body::before {
     background-color: #172338;
   }
 
+  .dark .stats-streak-card {
+    background-image: none;
+    border-color: #334155;
+  }
+
+  .dark .stats-streak-card-blue {
+    background-color: #1c2b42;
+  }
+
+  .dark .stats-streak-card-purple {
+    background-color: #29243b;
+  }
+
+  .dark .stats-streak-card-emerald {
+    background-color: #1d302e;
+  }
+
   .dark .bg-white\/70 {
     background-color: rgb(30 41 59 / 80%);
   }
