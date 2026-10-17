@@ -6,16 +6,20 @@
  * @returns Date au format YYYY-MM-DD
  */
 export function get_4to4_gliding_day(): string {
-  const now = new Date();
-  const hour = now.getHours();
-  
-  // Si avant 4h du matin, retourner la veille
-  if (hour < 4) {
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return yesterday.toISOString().split("T")[0]!;
-  }
-  
-  // Sinon, retourner aujourd'hui
-  return now.toISOString().split("T")[0]!;
+  const habitDay = new Date();
+  if (habitDay.getHours() < 4) habitDay.setDate(habitDay.getDate() - 1);
+  return formatLocalDate(habitDay);
+}
+
+export function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function getHabitDateForDate(date: Date): string {
+  const habitDay = new Date(date);
+  if (habitDay.getHours() < 4) habitDay.setDate(habitDay.getDate() - 1);
+  return formatLocalDate(habitDay);
 }

@@ -74,64 +74,56 @@ bun start
 
 ```
 ├── src/
-│   ├── App.tsx                 # Root component
+│   ├── index.ts                # Bun server and JSON persistence
+│   ├── App.tsx                 # Root React component
 │   ├── frontend.tsx            # React entry point
-│   ├── index.html              # HTML template
-│   ├── index.ts                # Server configuration
-│   ├── hooks/
-│   │   └── useHabits.ts        # Centralized habit state management
-│   ├── components/
-│   │   ├── TodayPage.tsx       # Daily habit tracking
-│   │   ├── HabitsList.tsx      # All habits view
-│   │   ├── StatsPage.tsx       # Statistics & analytics
-│   │   └── ui/                 # Reusable UI components
-│   └── lib/
-│       └── utils.ts            # Utility functions
-├── habits.ts                   # Habit business logic
+│   ├── hooks/                  # Habit state and local habit-day clock
+│   ├── components/             # Today, habits, stats, and checkbox UI
+│   ├── logic/habits/           # Habit creation and deletion
+│   └── lib/                    # Shared types, date rules, and log updates
+├── habits.ts                   # Habit dates, schedules, and statistics
 ├── habits-data.json            # Persisted habit data
-└── styles/
-    └── globals.css             # Global styles
+└── styles/                    # Tailwind and global styles
 ```
 
 ## API Endpoints
 
-All endpoints are served from the Bun server at `:3001`:
+The Bun server exposes one habit endpoint at `:3001`:
 
-### GET `/api/habits`
-Fetch all habits
+### GET `/api/habitsorganizer`
+Fetch all habits.
 
 ```bash
-curl http://localhost:3001/api/habits
+curl http://localhost:3001/api/habitsorganizer
 ```
 
-### POST `/api/habits`
-Create a new habit
+### POST `/api/habitsorganizer` — create
 
 ```bash
-curl -X POST http://localhost:3001/api/habits \
+curl -X POST http://localhost:3001/api/habitsorganizer \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Meditation",
     "frequency": "daily",
-    "iterations": 1,
+    "iteration": 1,
     "time": "morning"
   }'
 ```
 
-### POST `/api/do-habit`
-Mark a habit complete/incomplete
+### POST `/api/habitsorganizer` — set one repetition
 
 ```bash
-curl -X POST http://localhost:3001/api/do-habit \
+curl -X POST http://localhost:3001/api/habitsorganizer \
   -H "Content-Type: application/json" \
-  -d '{"name": "Meditation", "done": false}'
+  -d '{"name":"Meditation","habitDate":"2026-10-17","periodKey":"2026-10-17","iterationIndex":0,"isChecked":true}'
 ```
 
-### POST `/api/delete-habit`
-Delete a habit
+`habitDate` is the local calendar date, with the habit day changing at 04:00. `periodKey` identifies the schedule period (for example, Monday's date for a weekly habit). Repetitions are numbered from zero.
+
+### POST `/api/habitsorganizer` — delete
 
 ```bash
-curl -X POST http://localhost:3001/api/delete-habit \
+curl -X POST http://localhost:3001/api/habitsorganizer \
   -H "Content-Type: application/json" \
   -d '{"name": "Meditation"}'
 ```
@@ -227,4 +219,3 @@ This project is open source and available for personal use.
 ---
 
 **Questions or issues?** Check the GitHub repository or review the API endpoints above.
- 

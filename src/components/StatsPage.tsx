@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Habit } from "../../habits";
-import { getCompletionsThisWeek, getGlobalCompletionRate, getExpectedCompletionsThisWeek, getWeightedGlobalCompletionRate } from "../../habits";
+import { calculateCurrentStreak, calculateLongestStreak, getCompletionsThisWeek, getGlobalCompletionRate, getExpectedCompletionsThisWeek, getWeightedGlobalCompletionRate } from "../../habits";
 import { getFrequencyLabel } from "@/lib/presentation";
 
 interface StatsPageProps {
@@ -13,10 +13,10 @@ export default function StatsPage({ habits, loading, error }: StatsPageProps) {
   // Calcul des stats globales
   const totalHabits = habits.length;
   const avgStreak = habits.length > 0 
-    ? Math.round(habits.reduce((sum, h) => sum + (h.currentStreak || 0), 0) / habits.length)
+    ? Math.round(habits.reduce((sum, habit) => sum + calculateCurrentStreak(habit), 0) / habits.length)
     : 0;
   
-  const totalCompletions = habits.reduce((sum, h) => sum + (h.totalCompleted || 0), 0);
+  const totalCompletions = habits.reduce((sum, habit) => sum + (habit.completedLogs || []).filter((log) => log.status === "completed").length, 0);
   
   // Weighted average completion rate (accounts for effort of each habit)
   const avgCompletion = getWeightedGlobalCompletionRate(habits);
@@ -39,9 +39,9 @@ export default function StatsPage({ habits, loading, error }: StatsPageProps) {
         </div>
 
         <div className="bg-linear-to-br from-purple-50 to-purple-100 p-6 rounded-lg border border-purple-200 shadow-sm">
-          <div className="text-sm font-semibold text-slate-600 mb-2">🔥 Streak moyen</div>
+          <div className="text-sm font-semibold text-slate-600 mb-2">🔥 Série moyenne</div>
           <div className="text-4xl font-bold text-purple-600">{avgStreak}</div>
-          <p className="text-xs text-slate-600 mt-1">jours</p>
+          <p className="text-xs text-slate-600 mt-1">occurrences consécutives</p>
         </div>
 
         <div className="bg-linear-to-br from-emerald-50 to-emerald-100 p-6 rounded-lg border border-emerald-200 shadow-sm">
@@ -68,7 +68,7 @@ export default function StatsPage({ habits, loading, error }: StatsPageProps) {
               const weekCompletions = getCompletionsThisWeek(habit);
               const expectedWeekCompletions = getExpectedCompletionsThisWeek(habit);
               const weekCompletionRate = expectedWeekCompletions > 0 
-                ? Math.round((weekCompletions / expectedWeekCompletions) * 100)
+                ? Math.min(100, Math.round((weekCompletions / expectedWeekCompletions) * 100))
                 : 0;
               const globalCompletionRate = getGlobalCompletionRate(habit);
               
@@ -134,7 +134,7 @@ export default function StatsPage({ habits, loading, error }: StatsPageProps) {
                       <p className="text-xs text-slate-600 mt-1">Streak actuel</p>
                     </div>
                     <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg border border-purple-100 text-center">
-                      <div className="text-xl font-bold text-purple-600">{habit.longestStreak || 0}</div>
+                      <div className="text-xl font-bold text-purple-600">{calculateLongestStreak(habit)}</div>
                       <p className="text-xs text-slate-600 mt-1">Meilleur streak</p>
                     </div>
                     <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-3 rounded-lg border border-emerald-100 text-center">

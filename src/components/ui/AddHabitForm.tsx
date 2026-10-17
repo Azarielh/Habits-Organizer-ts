@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { Habit, Frequency } from "../../../habits";
+import type { AddHabit, Frequency } from "../../lib/type";
 
 interface AddHabitFormProps {
   onHabitAdded?: () => Promise<void>;
-  addHabitFn?: (habit: Habit) => Promise<void>;
+  addHabitFn?: (habit: AddHabit) => Promise<void>;
 }
 
 const DAYS = [
@@ -65,10 +65,10 @@ export default function AddHabitForm({ onHabitAdded, addHabitFn }: AddHabitFormP
         frequency = frequencyType as Frequency;
       }
 
-      const newHabit: Habit = {
+      const newHabit: AddHabit = {
         name,
         frequency,
-        iterations,
+        iteration: iterations,
         time,
         description,
       };

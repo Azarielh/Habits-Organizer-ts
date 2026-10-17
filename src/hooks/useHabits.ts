@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import type { Habit } from "../../habits";
-import type { CompletedLog } from "../lib/type";
+import type { AddHabit, Habit } from "../lib/type";
+import type { ToggleHabit } from "../lib/type";
+import { calculateCurrentStreak, calculateLongestStreak } from "../../habits";
 
 export function useHabits() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -13,8 +14,19 @@ export function useHabits() {
       setError("");
       const response = await fetch("/api/habitsorganizer");
       if (!response.ok) throw new Error("Error loading habits");
-      const data = await response.json();
-      setHabits(data);
+      const data: unknown = await response.json();
+      if (!Array.isArray(data)) throw new Error("Invalid habits response");
+      setHabits(data.map((value) => {
+        const habit = value as Habit;
+        const completedLogs = Array.isArray(habit.completedLogs) ? habit.completedLogs : [];
+        const normalized = { ...habit, iteration: Math.max(1, habit.iteration || 1), completedLogs };
+        return {
+          ...normalized,
+          currentStreak: calculateCurrentStreak(normalized),
+          longestStreak: calculateLongestStreak(normalized),
+          totalCompleted: completedLogs.filter((log) => log.status === "completed").length,
+        };
+      }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -27,8 +39,9 @@ export function useHabits() {
     loadHabits();
   }, []);
 
-  const addHabit = async (newHabit: Habit): Promise<void> => {
+  const addHabit = async (newHabit: AddHabit): Promise<void> => {
     try {
+      setError("");
       const response = await fetch("/api/habitsorganizer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -46,12 +59,13 @@ export function useHabits() {
     }
   };
 
-  const toggleHabit = async (name: string, completedLogs: CompletedLog[], isChecked: boolean): Promise<void> => {
+  const toggleHabit = async (payload: ToggleHabit): Promise<void> => {
     try {
+      setError("");
       const response = await fetch("/api/habitsorganizer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, completedLogs, isChecked }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) throw new Error("Error toggling habit");
@@ -64,28 +78,9 @@ export function useHabits() {
     }
   };
 
-  // Wrapper for compatibility with the old API (done: boolean)
-  const toggleHabitCompat = async (name: string, completedLogs: CompletedLog[], isChecked: boolean): Promise<void> => {
-    let logs = completedLogs;
-    
-    if (isChecked) {
-      // isChecked=true : add an entry for today
-      const newLog: CompletedLog = {
-        status: "completed",
-        completedAt: new Date().toISOString(),
-        constraints: "" as any
-      };
-      logs = [...logs, newLog];
-    } else {
-      // isChecked=false : remove the last entry (assumed to be today)
-      logs = logs.slice(0, -1);
-    }
-    
-    await toggleHabit(name, logs, isChecked);
-  };
-
   const deleteHabit = async (name: string): Promise<void> => {
     try {
+      setError("");
       const response = await fetch("/api/habitsorganizer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -108,7 +103,7 @@ export function useHabits() {
     error,
     loadHabits,
     addHabit,
-    toggleHabit: toggleHabitCompat,
+    toggleHabit,
     deleteHabit,
   };
 }

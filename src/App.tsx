@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHabits } from "./hooks/useHabits";
 import AddHabitForm from "./components/ui/AddHabitForm";
@@ -8,20 +8,34 @@ import StatsPage from "./components/StatsPage";
 import "../styles/index.css";
 
 export function App() {
-  console.log("🔵 App component rendering");
   const [showForm, setShowForm] = useState(false);
   const [currentTab, setCurrentTab] = useState<"today" | "habits" | "stats">("today");
+  const [darkTheme, setDarkTheme] = useState(() => {
+    try {
+      return window.localStorage.getItem("habits-organizer-theme") === "dark";
+    } catch {
+      return false;
+    }
+  });
   
-  console.log("🔵 About to call useHabits");
   const { habits, loading, error, addHabit, toggleHabit, deleteHabit } = useHabits();
-  console.log("🔵 useHabits returned:", { habitsCount: habits.length, loading, error });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkTheme);
+    document.documentElement.style.colorScheme = darkTheme ? "dark" : "light";
+    try {
+      window.localStorage.setItem("habits-organizer-theme", darkTheme ? "dark" : "light");
+    } catch {
+      // Theme switching still works when browser storage is unavailable.
+    }
+  }, [darkTheme]);
 
   const handleHabitAdded = async () => {
     setShowForm(false);
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-slate-50">
+    <div data-app-shell className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-slate-50">
       {/* Network Preview Banner */}
       <div className="bg-amber-50 border-b border-amber-200 py-2 px-4 text-center">
         <p className="text-amber-800 text-sm font-medium">
@@ -33,11 +47,23 @@ export function App() {
       <div className="container mx-auto px-4 py-8 relative z-10 max-w-6xl">
         {/* Header */}
         <div className="flex justify-between items-start mb-12 gap-8">
-          <div>
+          <div className="flex items-start gap-3">
+            <button
+              type="button"
+              onClick={() => setDarkTheme((current) => !current)}
+              aria-label={darkTheme ? "Activer le thème clair" : "Activer le thème sombre"}
+              aria-pressed={darkTheme}
+              title={darkTheme ? "Passer au thème clair" : "Passer au thème sombre"}
+              className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-300/70 bg-white/70 text-lg text-slate-600 shadow-sm backdrop-blur transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              {darkTheme ? "☀️" : "🌙"}
+            </button>
+            <div>
             <h1 className="text-5xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
               Habit's Organizer
             </h1>
             <p className="text-slate-500">Suivez vos habitudes, atteindre vos objectifs</p>
+            </div>
           </div>
           
           {/* Tab Navigation */}
