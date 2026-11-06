@@ -7,6 +7,8 @@
     "dev": "bun --hot src/index.ts",
     "start": "bun src/index.ts",
     "build": "bun run build.ts",
+    "build:windows": "bun run scripts/build-windows.ts",
+    "installer:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-installer-windows.ps1",
     "test": "bun test"
   },
   "dependencies": {

@@ -5,11 +5,12 @@ import AddHabitForm from "./components/ui/AddHabitForm";
 import HabitsList from "./components/HabitsListPage";
 import TodayPage from "./components/TodayPage";
 import StatsPage from "./components/StatsPage";
+import ReviewPage from "./components/ReviewPage";
 import "../styles/index.css";
 
 export function App() {
   const [showForm, setShowForm] = useState(false);
-  const [currentTab, setCurrentTab] = useState<"today" | "habits" | "stats">("today");
+  const [currentTab, setCurrentTab] = useState<"today" | "habits" | "stats" | "review">("today");
   const [darkTheme, setDarkTheme] = useState(() => {
     try {
       return window.localStorage.getItem("habits-organizer-theme") === "dark";
@@ -18,7 +19,7 @@ export function App() {
     }
   });
   
-  const { habits, loading, error, addHabit, toggleHabit, deleteHabit } = useHabits();
+  const { habits, loading, error, addHabit, toggleHabit, reviewHabit, deleteHabit } = useHabits();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkTheme);
@@ -36,14 +37,6 @@ export function App() {
 
   return (
     <div data-app-shell className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-slate-50">
-      {/* Network Preview Banner */}
-      <div className="bg-amber-50 border-b border-amber-200 py-2 px-4 text-center">
-        <p className="text-amber-800 text-sm font-medium">
-          🚀 This tool is just a quick preview. 
-          There is no real mobile version yet, but it's intended in the future.
-        </p>
-      </div>
-
       <div className="container mx-auto px-4 py-8 relative z-10 max-w-6xl">
         {/* Header */}
         <div className="flex justify-between items-start mb-12 gap-8">
@@ -58,11 +51,14 @@ export function App() {
             >
               {darkTheme ? "☀️" : "🌙"}
             </button>
-            <div>
-            <h1 className="text-5xl font-bold bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
-              Habit's Organizer
-            </h1>
-            <p className="text-slate-500">Suivez vos habitudes, atteindre vos objectifs</p>
+            <div className="flex items-center gap-3">
+              <img src="./logo.svg" alt="" className="h-14 w-14 shrink-0" />
+              <div>
+                <h1 className="mb-1 bg-linear-to-r from-blue-600 to-cyan-600 bg-clip-text text-4xl font-bold text-transparent">
+                  Habits Organizer
+                </h1>
+                <p className="text-slate-500">Suivez vos habitudes, avancez à votre rythme.</p>
+              </div>
             </div>
           </div>
           
@@ -98,6 +94,9 @@ export function App() {
             >
               📊 Stats
             </button>
+			<button onClick={() => setCurrentTab("review")} className={`rounded-md px-4 py-2 font-medium transition-all ${currentTab === "review" ? "bg-blue-500 text-white shadow-md" : "text-slate-600 hover:bg-slate-100"}`}>
+				📝 Revue
+			</button>
           </div>
         </div>
 
@@ -127,7 +126,9 @@ export function App() {
             {/* Habits List */}
             <HabitsList habits={habits} loading={loading} error={error} onToggleHabit={toggleHabit} onDeleteHabit={deleteHabit} />
           </div>
-        ) : (
+        ) : currentTab === "review" ? (
+			<ReviewPage habits={habits} loading={loading} error={error} onReview={reviewHabit} />
+		) : (
           <StatsPage habits={habits} loading={loading} error={error} />
         )}
       </div>

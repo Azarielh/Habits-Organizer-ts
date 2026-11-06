@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 import type { Habit, ToggleHabit } from "../lib/type";
-import { getCompletionsForCurrentPeriod, getCompletionsThisWeek, getHabitPeriodKey, getNextIterationIndex, isHabitForToday } from "../../habits";
+import { getCompletionsForCurrentPeriod, getCompletionsThisWeek, getHabitPeriodKey, getNextIterationIndex, isHabitForToday, isHabitIterationDue } from "../../habits";
 import { useHabitDate } from "../hooks/useHabitDate";
 import TodayIterationCheckbox from "./TodayIterationCheckbox";
 import { getFrequencyLabel, getTimeLabel } from "@/lib/presentation";
+import { sortHabitsForDisplay } from "@/lib/habit_sort";
 
 interface TodayPageProps {
 	habits: Habit[];
@@ -14,11 +15,13 @@ interface TodayPageProps {
 
 export default function TodayPage({ habits, loading, error, onToggleHabit }: TodayPageProps) {
 	const habitDate = useHabitDate();
-	const todayHabits = useMemo(() => habits.filter((habit) => {
+	const todayHabits = useMemo(() => sortHabitsForDisplay(habits.filter((habit) => {
 		if (!isHabitForToday(habit)) return false;
 		const periodKey = getHabitPeriodKey(habit, habitDate);
-		return getNextIterationIndex(habit, periodKey) !== null;
-	}), [habits, habitDate]);
+		const nextIteration = getNextIterationIndex(habit, periodKey);
+		return (habit.allowExtraIterations || nextIteration !== null)
+			&& (nextIteration === null || isHabitIterationDue(habit, periodKey, habitDate, nextIteration));
+	})), [habits, habitDate]);
 	const todayLabel = new Date(`${habitDate}T12:00:00`).toLocaleDateString("fr-FR", {
 		weekday: "long", year: "numeric", month: "long", day: "numeric",
 	});
@@ -51,7 +54,8 @@ export default function TodayPage({ habits, loading, error, onToggleHabit }: Tod
 							return (
 								<div key={habit.name} className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-100 bg-white p-4 shadow-sm transition-all hover:shadow-md">
 									<TodayIterationCheckbox
-										iterationNumber={iterationIndex + 1}
+									iterationNumber={iterationIndex + 1}
+									extra={iterationIndex >= habit.iteration}
 										onComplete={() => onToggleHabit({ name: habit.name, habitDate, periodKey, iterationIndex, isChecked: true })}
 									/>
 									<div className="min-w-0 flex-1">

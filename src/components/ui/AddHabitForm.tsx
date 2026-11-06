@@ -31,6 +31,9 @@ export default function AddHabitForm({ onHabitAdded, addHabitFn }: AddHabitFormP
   const [name, setName] = useState("");
   const [frequencyType, setFrequencyType] = useState<string>("daily");
   const [iterations, setIterations] = useState<number>(1);
+	const [allowExtraIterations, setAllowExtraIterations] = useState(false);
+  const [iterationInterval, setIterationInterval] = useState(1);
+  const [lateIterationPolicy, setLateIterationPolicy] = useState<"spread" | "respect" | "">("");
   const [customDays, setCustomDays] = useState<string[]>([]);
   const [time, setTime] = useState<"morning" | "afternoon" | "evening" | "">("");
   const [description, setDescription] = useState("");
@@ -42,6 +45,11 @@ export default function AddHabitForm({ onHabitAdded, addHabitFn }: AddHabitFormP
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
   };
+
+  const usesIterationInterval = iterations > 1 && frequencyType !== "daily" && frequencyType !== "custom";
+  const intervalUnit = ["weekend", "semaine", "quinzaine"].includes(frequencyType)
+    ? "jour(s)"
+    : frequencyType === "mois" ? "semaine(s)" : "mois";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,10 +73,18 @@ export default function AddHabitForm({ onHabitAdded, addHabitFn }: AddHabitFormP
         frequency = frequencyType as Frequency;
       }
 
+      if (usesIterationInterval && !lateIterationPolicy) {
+        setError("Choisis comment gérer les réalisations restantes quand l’intervalle ne permet plus de toutes les faire.");
+        setLoading(false);
+        return;
+      }
+
       const newHabit: AddHabit = {
         name,
         frequency,
         iteration: iterations,
+		allowExtraIterations,
+		...(usesIterationInterval ? { iterationInterval, lateIterationPolicy: lateIterationPolicy as "spread" | "respect" } : {}),
         time,
         description,
       };
@@ -81,6 +97,9 @@ export default function AddHabitForm({ onHabitAdded, addHabitFn }: AddHabitFormP
       setName("");
       setFrequencyType("daily");
       setIterations(1);
+		setAllowExtraIterations(false);
+      setIterationInterval(1);
+      setLateIterationPolicy("");
       setCustomDays([]);
       setTime("");
       setDescription("");
@@ -131,15 +150,40 @@ export default function AddHabitForm({ onHabitAdded, addHabitFn }: AddHabitFormP
 
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-2">Itérations (nombre de fois)</label>
-        <input
-          type="number"
-          min="1"
-          value={iterations}
-          onChange={(e) => setIterations(Math.max(1, parseInt(e.target.value) || 1))}
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-          placeholder="1"
-        />
+		<div className="flex flex-wrap items-center gap-4">
+			<input type="number" min="1" value={iterations} onChange={(e) => setIterations(Math.max(1, parseInt(e.target.value) || 1))} className="w-28 rounded-lg border border-slate-200 px-3 py-2 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500" placeholder="1" />
+			<label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={allowExtraIterations} onChange={(e) => setAllowExtraIterations(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500" />Autoriser des répétitions supplémentaires</label>
+		</div>
       </div>
+
+      {usesIterationInterval && (
+        <div className="space-y-4 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Intervalle souhaité entre les réalisations</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                min="1"
+                value={iterationInterval}
+                onChange={(event) => setIterationInterval(Math.max(1, parseInt(event.target.value) || 1))}
+                className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="text-sm text-slate-600">{intervalUnit}</span>
+            </div>
+          </div>
+          <fieldset className="space-y-3">
+            <legend className="mb-2 text-sm font-semibold text-slate-700">Si le temps restant ne permet plus de réaliser toutes les itérations en respectant l’intervalle choisi, que faire ?</legend>
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700">
+              <input type="radio" name="lateIterationPolicy" value="spread" required checked={lateIterationPolicy === "spread"} onChange={() => setLateIterationPolicy("spread")} className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500" />
+              <span>Réduire l’intervalle pour répartir les réalisations restantes sur la période</span>
+            </label>
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700">
+              <input type="radio" name="lateIterationPolicy" value="respect" required checked={lateIterationPolicy === "respect"} onChange={() => setLateIterationPolicy("respect")} className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500" />
+	              <span>Respecter l’intervalle : les itérations qui ne tiennent plus dans la période seront signalées comme manquées dans la revue</span>
+            </label>
+          </fieldset>
+        </div>
+      )}
 
       {frequencyType === "custom" && (
         <div>

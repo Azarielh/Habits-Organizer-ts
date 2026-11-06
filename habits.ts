@@ -11,7 +11,13 @@ export function getHabitDateForLog(log: CompletedLog): string | undefined {
 }
 
 export function getHabitPeriodKey(habit: Habit, dateKey: string): string {
-	if (typeof habit.frequency !== "string" || ["daily", "weekend"].includes(habit.frequency)) return dateKey;
+	if (typeof habit.frequency !== "string" || habit.frequency === "daily") return dateKey;
+	if (habit.frequency === "weekend") {
+		if (!habit.iterationInterval || !habit.lateIterationPolicy) return dateKey;
+		const date = new Date(`${dateKey}T12:00:00`);
+		if (date.getDay() === 0) date.setDate(date.getDate() - 1);
+		return formatLocalDate(date);
+	}
 	const date = new Date(`${dateKey}T12:00:00`);
 	if (habit.frequency === "semaine") date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
 	else if (habit.frequency === "quinzaine") {
@@ -39,7 +45,7 @@ export function getCompletedIterationIndexes(habit: Habit, periodKey: string): S
 	});
 	const completed = new Set<number>();
 	for (const log of dayLogs) {
-		if (Number.isInteger(log.iterationIndex) && log.iterationIndex! >= 0 && log.iterationIndex! < habit.iteration) {
+		if (Number.isInteger(log.iterationIndex) && log.iterationIndex! >= 0) {
 			completed.add(log.iterationIndex!);
 		}
 	}
@@ -58,7 +64,72 @@ export function getNextIterationIndex(habit: Habit, periodKey: string): number |
 	for (let index = 0; index < iterationCount; index++) {
 		if (!completed.has(index)) return index;
 	}
+	if (habit.allowExtraIterations) {
+		let next = iterationCount;
+		while (completed.has(next)) next++;
+		return next;
+	}
 	return null;
+}
+
+function addIterationInterval(habit: Habit, dateKey: string, interval: number): string {
+	const date = new Date(`${dateKey}T12:00:00`);
+	if (habit.frequency === "mois") date.setDate(date.getDate() + interval * 7);
+	else if (habit.frequency === "semestre" || habit.frequency === "an") {
+		const dayOfMonth = date.getDate();
+		date.setDate(1);
+		date.setMonth(date.getMonth() + interval);
+		const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+		date.setDate(Math.min(dayOfMonth, lastDayOfMonth));
+	}
+	else date.setDate(date.getDate() + interval);
+	return formatLocalDate(date);
+}
+
+function getIterationPeriodEnd(habit: Habit, periodKey: string): string {
+	const end = new Date(`${periodKey}T12:00:00`);
+	if (habit.frequency === "weekend" && habit.iterationInterval && habit.lateIterationPolicy) end.setDate(end.getDate() + 1);
+	else if (habit.frequency === "semaine") end.setDate(end.getDate() + 6);
+	else if (habit.frequency === "quinzaine") end.setDate(end.getDate() + 13);
+	else if (habit.frequency === "mois") end.setMonth(end.getMonth() + 1, 0);
+	else if (habit.frequency === "semestre") end.setMonth(end.getMonth() + 6, 0);
+	else if (habit.frequency === "an") end.setFullYear(end.getFullYear() + 1, 0, 0);
+	return formatLocalDate(end);
+}
+
+/** Whether the next repetition can be completed on this day under its configured spacing rule. */
+export function isHabitIterationDue(habit: Habit, periodKey: string, dateKey: string, iterationIndex?: number): boolean {
+	const nextIndex = getNextIterationIndex(habit, periodKey);
+	if (nextIndex === null || iterationIndex !== undefined && iterationIndex !== nextIndex) return false;
+	if (nextIndex >= habit.iteration || habit.iteration <= 1 || !habit.iterationInterval || !habit.lateIterationPolicy) return true;
+
+	const previousCompletions = (habit.completedLogs ?? [])
+		.filter((log) => log.status === "completed")
+		.map((log) => getHabitDateForLog(log))
+		.filter((day): day is string => Boolean(day) && day! <= dateKey)
+		.sort();
+	const lastCompletion = previousCompletions.at(-1);
+	if (!lastCompletion) return true;
+
+	let interval = habit.iterationInterval;
+	const remainingIterations = habit.iteration - nextIndex;
+	const periodEnd = getIterationPeriodEnd(habit, periodKey);
+	let nextDue: string;
+	if (habit.lateIterationPolicy === "spread") {
+		const fits = (candidate: number) => addIterationInterval(habit, lastCompletion, candidate * remainingIterations) <= periodEnd;
+		if (fits(interval)) nextDue = addIterationInterval(habit, lastCompletion, interval);
+		else {
+			const daysRemaining = Math.max(0, Math.round((Date.parse(`${periodEnd}T12:00:00`) - Date.parse(`${lastCompletion}T12:00:00`)) / 86_400_000));
+			const reducedGap = Math.max(1, Math.ceil(daysRemaining / remainingIterations));
+			const due = new Date(`${lastCompletion}T12:00:00`);
+			due.setDate(due.getDate() + reducedGap);
+			nextDue = formatLocalDate(due);
+		}
+	} else {
+		nextDue = addIterationInterval(habit, lastCompletion, interval);
+	}
+
+	return nextDue <= periodEnd && dateKey >= nextDue;
 }
 
 function getDayName(dateKey: string): string {
@@ -67,6 +138,39 @@ function getDayName(dateKey: string): string {
 
 function completedOn(habit: Habit, dateKey: string): number {
 	return (habit.completedLogs ?? []).filter((log) => isCompleted(log) && getHabitDateForLog(log) === dateKey).length;
+}
+
+type PeriodProgress = { completed: number; notApplicable: number };
+
+function getPeriodProgress(habit: Habit, start: string, end: string, periodKey: string): PeriodProgress {
+	const completedSlots = new Set<number>();
+	const notApplicableSlots = new Set<number>();
+	let legacyCompleted = 0;
+	let legacyNotApplicable = 0;
+	for (const log of habit.completedLogs ?? []) {
+		if (log.status !== "completed" && log.status !== "not_applicable") continue;
+		const date = getHabitDateForLog(log);
+		const logPeriod = log.periodKey ?? (date ? getHabitPeriodKey(habit, date) : undefined);
+		if (logPeriod !== periodKey || date && (date < start || date > end)) continue;
+		if (Number.isInteger(log.iterationIndex) && log.iterationIndex! >= 0) {
+			if (log.status === "completed") completedSlots.add(log.iterationIndex!);
+			else notApplicableSlots.add(log.iterationIndex!);
+		} else if (log.status === "completed") legacyCompleted++;
+		else legacyNotApplicable++;
+	}
+	for (const index of completedSlots) notApplicableSlots.delete(index);
+	return {
+		completed: completedSlots.size + legacyCompleted,
+		notApplicable: notApplicableSlots.size + legacyNotApplicable,
+	};
+}
+
+function periodIsComplete(progress: PeriodProgress, target: number): boolean {
+	return progress.completed > 0 && progress.completed + progress.notApplicable >= target;
+}
+
+function periodIsNeutral(progress: PeriodProgress, target: number): boolean {
+	return progress.completed === 0 && progress.notApplicable >= target;
 }
 
 function completedInRange(habit: Habit, start: string, end: string): number {
@@ -84,7 +188,7 @@ export function isHabitForToday(habit: Habit): boolean {
 	if (frequency === "weekend") return dayName === "saturday" || dayName === "sunday";
 	if (typeof frequency === "object") return frequency.days.includes(dayName as typeof frequency.days[number]);
 
-	return getCompletionsForCurrentPeriod(habit, today) < (habit.iteration || 1);
+	return habit.allowExtraIterations || getCompletionsForCurrentPeriod(habit, today) < (habit.iteration || 1);
 }
 
 export function isCompletedToday(habit: Habit): boolean {
@@ -196,21 +300,26 @@ export function calculateCurrentStreak(habit: Habit, asOfDate = get_4to4_gliding
 		let start = periodStartFor(habit, frequency, today);
 		let end = new Date(today);
 		if (formatLocalDate(end) > formatLocalDate(dayBefore(nextPeriodStart(frequency, start)))) end = dayBefore(nextPeriodStart(frequency, start));
-		if (completedInRange(habit, formatLocalDate(start), formatLocalDate(end)) < target) {
+		const currentPeriodProgress = getPeriodProgress(habit, formatLocalDate(start), formatLocalDate(end), formatLocalDate(start));
+		if (!periodIsComplete(currentPeriodProgress, target) && !periodIsNeutral(currentPeriodProgress, target)) {
 			end = dayBefore(start);
 			start = previousPeriodStart(frequency, start);
 		}
 		let streak = 0;
 		for (let checked = 0; checked < 1200; checked++) {
-			if (completedInRange(habit, formatLocalDate(start), formatLocalDate(end)) < target) break;
-			streak++;
+			const progress = getPeriodProgress(habit, formatLocalDate(start), formatLocalDate(end), formatLocalDate(start));
+			if (periodIsComplete(progress, target)) streak++;
+			else if (!periodIsNeutral(progress, target)) break;
 			end = dayBefore(start);
 			start = previousPeriodStart(frequency, start);
 		}
 		return streak;
 	}
-	const currentDayCount = completedOn(habit, asOfDate);
-	const cursor = currentDayCount >= target ? today : new Date(today.setDate(today.getDate() - 1));
+	const currentPeriodKey = getHabitPeriodKey(habit, asOfDate);
+	const currentDayProgress = getPeriodProgress(habit, asOfDate, asOfDate, currentPeriodKey);
+	const cursor = periodIsComplete(currentDayProgress, target) || periodIsNeutral(currentDayProgress, target)
+		? today
+		: new Date(today.setDate(today.getDate() - 1));
 	let streak = 0;
 	for (let checked = 0; checked < 3660; checked++) {
 		const day = formatLocalDate(cursor);
@@ -219,8 +328,9 @@ export function calculateCurrentStreak(habit: Habit, asOfDate = get_4to4_gliding
 			|| frequency === "weekend" && ["saturday", "sunday"].includes(dayName)
 			|| typeof frequency === "object" && frequency.days.includes(dayName as typeof frequency.days[number]);
 		if (scheduled) {
-			if (completedOn(habit, day) < target) break;
-			streak++;
+			const progress = getPeriodProgress(habit, day, day, getHabitPeriodKey(habit, day));
+			if (periodIsComplete(progress, target)) streak++;
+			else if (!periodIsNeutral(progress, target)) break;
 		}
 		cursor.setDate(cursor.getDate() - 1);
 	}
@@ -246,10 +356,11 @@ export function calculateLongestStreak(habit: Habit): number {
 		for (let checked = 0; checked < 1200 && formatLocalDate(start) <= formatLocalDate(lastStart); checked++) {
 			const end = dayBefore(nextPeriodStart(frequency, start));
 			if (formatLocalDate(end) > today) end.setTime(new Date(`${today}T12:00:00`).getTime());
-			if (completedInRange(habit, formatLocalDate(start), formatLocalDate(end)) >= target) {
+			const progress = getPeriodProgress(habit, formatLocalDate(start), formatLocalDate(end), formatLocalDate(start));
+			if (periodIsComplete(progress, target)) {
 				streak++;
 				longest = Math.max(longest, streak);
-			} else {
+			} else if (!periodIsNeutral(progress, target)) {
 				streak = 0;
 			}
 			start = nextPeriodStart(frequency, start);
@@ -268,10 +379,11 @@ export function calculateLongestStreak(habit: Habit): number {
 			|| frequency === "weekend" && ["saturday", "sunday"].includes(dayName)
 			|| typeof frequency === "object" && frequency.days.includes(dayName as typeof frequency.days[number]);
 		if (scheduled) {
-			if (completedOn(habit, day) >= target) {
+			const progress = getPeriodProgress(habit, day, day, getHabitPeriodKey(habit, day));
+			if (periodIsComplete(progress, target)) {
 				streak++;
 				longest = Math.max(longest, streak);
-			} else {
+			} else if (!periodIsNeutral(progress, target)) {
 				streak = 0;
 			}
 		}

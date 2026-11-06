@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { AddHabit, Habit } from "../lib/type";
+import type { AddHabit, Habit, ReviewHabit } from "../lib/type";
 import type { ToggleHabit } from "../lib/type";
 import { calculateCurrentStreak, calculateLongestStreak } from "../../habits";
 
@@ -78,6 +78,17 @@ export function useHabits() {
     }
   };
 
+	const reviewHabit = async (payload: ReviewHabit): Promise<void> => {
+		try {
+			const response = await fetch("/api/habitsorganizer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+			if (!response.ok) throw new Error("Error saving review");
+			setHabits(await response.json());
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Unknown error");
+			throw err;
+		}
+	};
+
   const deleteHabit = async (name: string): Promise<void> => {
     try {
       setError("");
@@ -104,6 +115,7 @@ export function useHabits() {
     loadHabits,
     addHabit,
     toggleHabit,
+		reviewHabit,
     deleteHabit,
   };
 }

@@ -3,6 +3,7 @@ import { calculateCurrentStreak, calculateLongestStreak, getCompletionsForCurren
 import { useHabitDate } from "../hooks/useHabitDate";
 import CompletionCheckboxes from "./CompletionCheckboxes";
 import { getFrequencyLabel, getTimeLabel } from "@/lib/presentation";
+import { sortHabitsForDisplay } from "@/lib/habit_sort";
 
 interface HabitsListProps {
 	habits: Habit[];
@@ -14,6 +15,7 @@ interface HabitsListProps {
 
 export default function HabitsList({ habits, loading, error, onToggleHabit, onDeleteHabit }: HabitsListProps) {
 	const habitDate = useHabitDate();
+	const sortedHabits = sortHabitsForDisplay(habits);
 	const deleteHabitHandler = async (name: string) => {
 		if (!window.confirm(`Êtes-vous sûr de vouloir supprimer « ${name} » ?`)) return;
 		try {
@@ -33,7 +35,7 @@ export default function HabitsList({ habits, loading, error, onToggleHabit, onDe
 				<div className="rounded-lg border border-slate-200 bg-slate-50 py-12 text-center text-slate-500">Aucune habitude pour le moment. Crée ta première !</div>
 			) : (
 				<div className="space-y-3">
-					{habits.map((habit) => (
+					{sortedHabits.map((habit) => (
 						<div key={habit.name} className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-100 bg-white p-4 shadow-sm transition-all hover:shadow-md">
 							<CompletionCheckboxes
 								habit={habit}

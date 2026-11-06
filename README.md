@@ -70,6 +70,17 @@ bun run build
 bun start
 ```
 
+### Windows Installer
+
+On a 64-bit Windows machine, install Bun and [Inno Setup](https://jrsoftware.org/isinfo.php), then run:
+
+```powershell
+bun install
+bun run installer:windows
+```
+
+The installer is created at `dist/installer/HabitsOrganizer-Setup.exe`. It installs a self-contained Windows application, adds Start Menu and desktop shortcuts, and opens the app in your browser. Bun and Inno Setup are only needed on the machine that builds the installer. Your saved habits stay in `%APPDATA%\Habits Organizer` when the app is updated or uninstalled.
+
 ## Project Structure
 
 ```
@@ -88,13 +99,66 @@ bun start
 
 ## API Endpoints
 
-The Bun server exposes one habit endpoint at `:3001`:
+The Bun server exposes a read API at `:3001`. The existing root endpoint and `POST` request shapes remain available for the web application.
 
 ### GET `/api/habitsorganizer`
 Fetch all habits.
 
 ```bash
 curl http://localhost:3001/api/habitsorganizer
+```
+
+The response is the complete habit array, including each habit's settings, stored statistics, and all completion logs.
+
+### GET `/api/habitsorganizer/export`
+
+Read the complete dataset in the same object shape as the persisted JSON file:
+
+```bash
+curl http://localhost:3001/api/habitsorganizer/export
+```
+
+### GET `/api/habitsorganizer/{name}`
+
+Read one complete habit, including all its completion logs. URL-encode the habit name when it contains spaces or special characters:
+
+```bash
+curl "http://localhost:3001/api/habitsorganizer/Meditation"
+```
+
+### GET `/api/habitsorganizer/logs`
+
+Read logs across all habits. Optional query parameters are `habit`, `from`, `to`, `status`, `limit` (1–1000), and `offset`. Dates use `YYYY-MM-DD`; valid statuses are `completed`, `skipped`, `missed`, and `toupdate`. Without pagination parameters, all matching logs are returned.
+
+```bash
+curl "http://localhost:3001/api/habitsorganizer/logs?from=2026-10-01&to=2026-10-31&status=completed"
+```
+
+The response contains `total`, `offset`, `limit`, and `logs`; each log includes its `habitName`.
+
+### GET `/api/habitsorganizer/{name}/logs`
+
+Read one habit's logs with the same date, status, and pagination filters:
+
+```bash
+curl "http://localhost:3001/api/habitsorganizer/Meditation/logs?status=missed"
+```
+
+### GET `/api/habitsorganizer/stats`
+
+Read aggregate statistics and a statistics object for every habit, including completion counts, rates, and streaks.
+
+### GET `/api/health` and `/api/openapi.json`
+
+Check service availability and retrieve the OpenAPI description of the read API.
+
+### Browser clients on another origin
+
+Same-origin requests need no CORS configuration. To allow browser applications hosted on other origins, set `API_ALLOWED_ORIGINS` to a comma-separated list of exact origins before starting Bun. For example:
+
+```powershell
+$env:API_ALLOWED_ORIGINS = "http://localhost:5173,https://my-client.example"
+bun src/index.ts
 ```
 
 ### POST `/api/habitsorganizer` — create
