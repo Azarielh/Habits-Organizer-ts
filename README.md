@@ -70,17 +70,6 @@ bun run build
 bun start
 ```
 
-### Windows Installer
-
-On a 64-bit Windows machine, install Bun and [Inno Setup](https://jrsoftware.org/isinfo.php), then run:
-
-```powershell
-bun install
-bun run installer:windows
-```
-
-The installer is created at `dist/installer/HabitsOrganizer-Setup.exe`. It installs a self-contained Windows application, adds Start Menu and desktop shortcuts, and opens the app in your browser. Bun and Inno Setup are only needed on the machine that builds the installer. Your saved habits stay in `%APPDATA%\Habits Organizer` when the app is updated or uninstalled.
-
 ## Project Structure
 
 ```
